@@ -3,7 +3,7 @@ import sys
 import tensorflow as tf
 
 sys.path.append('./')
-from unet_block import conv_block, encoder_block, decoder_block
+from unet_blocks import conv_block, encoder_block, decoder_block
 
 
 

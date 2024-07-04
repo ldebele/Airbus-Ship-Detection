@@ -1,6 +1,11 @@
+import tensorflow as tf
 
 import matplotlib.pyplot as plt
 
+
+
+def plot_model(model, filename):
+    tf.keras.utils.plot_model(model, to_file=filename, show_shapes=True)
 
 
 def plot_history(history, type, y):
