@@ -3,63 +3,55 @@ import tensorflow as tf
 
 
 
-def conv_block(x, num_filters):
+def conv_block(inputs, num_filters):
     """
         Args:
-            x :
-            num_filters : int
-            dropout :
-            l2 :
-
+            input :
+            num_filters: int
         Return:
-            x :
+            act :
     """
+    # implementing the first conv block.
+    conv = tf.keras.layers.Conv2D(num_filters, 3, padding='same')(inputs)
+    batch_norm = tf.keras.layers.BatchNormalization()(conv)
+    act = tf.keras.layers.Activation('relu')(batch_norm)
 
-    x = tf.keras.layers.Conv2D(num_filters, 3, padding='same')(x)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Activation('relu')(x)
+    # implementing the second conv block.
+    conv = tf.keras.layers.Conv2D(num_filters, 3, padding="same")(act)
+    batch_norm = tf.keras.layers.BatchNormalization()(conv)
+    act = tf.keras.layers.Activation("relu")(batch_norm)
 
-    x = tf.keras.layers.Conv2D(num_filters, 3, padding="same")(x)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Activation("relu")(x)
-
-    return x
+    return act
 
 
-def encoder_block(x, num_filters):
+def encoder_block(inputs, num_filters):
     """
         Args:
-            x :
-            num_filters :
-            dropout :
-            l2 :
-
+            inputs :
+            num_filters: int
         Return:
-            x :
-            p :
+            skip :
+            max_pool :
     """
+    
+    skip = conv_block(inputs, num_filters) # convolutional block
+    max_pool = tf.keras.layers.MaxPooling2D((2,2))(input) # pooling  block
 
-    skip = conv_block(x, num_filters) # convolutional block
-    p = tf.keras.layers.MaxPooling2D((2,2))(x) # pooling  block
-
-    return skip, p
+    return skip, max_pool
 
 
-def decoder_block(x, skip, num_filters):
+def decoder_block(inputs, skip, num_filters):
     """
         Args:
-            x :
-            p :
-            num_filters :
-            dropout :
-            l2 :
-
+            inputs: 
+            skip: 
+            num_filters: int
         Return :
-            x :
+            out :
     """
+    # upsampling and concatenating the input features.
+    upsample = tf.keras.layers.Conv2DTranspose(num_filters, (2, 2), strides=(2,2), padding='same')(inputs)  # upsampling block
+    connect_skip = tf.keras.layers.Concatenate([upsample, skip])
+    out = conv_block(connect_skip, num_filters)
 
-    x = tf.keras.layers.Conv2DTranspose(num_filters, (2, 2), strides=(2,2), padding='same')(x)  # upsampling block
-    x = tf.keras.layers.Concatenate([x, skip])
-    x = conv_block(x, num_filters)
-
-    return x
+    return out
