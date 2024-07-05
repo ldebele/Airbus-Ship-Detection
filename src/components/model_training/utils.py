@@ -1,6 +1,36 @@
+import os
+import datetime
 import tensorflow as tf
 
+import numpy as np
 import matplotlib.pyplot as plt
+
+
+
+
+def dice_coef(y_true, y_pred):
+    intersection = np.sum(y_pred * y_true)
+    union = np.sum(y_pred) + np.sum(y_true)
+    dice = np.mean(2*intersection / union)
+
+    return round(dice, 3)
+
+
+
+def dice_coef_loss(y_true, y_pred):
+    return 1 - dice_coef(y_true, y_pred)
+
+
+def save_model(model, outputs: str = './models'):
+    """
+        Args:
+            model:
+            outputs: str
+    """
+
+    timestamp = datetime.datetime.today()
+    file_path = os.path.join(outputs, f'{str(timestamp)}_unet.h5')
+    model.save(file_path)
 
 
 

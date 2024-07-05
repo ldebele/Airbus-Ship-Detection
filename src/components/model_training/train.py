@@ -1,12 +1,19 @@
 
 import os
 import sys
-import datetime
+import logging
+import argparse
 import numpy as np
 import tensorflow as tf
 
 sys.path.append('./')
-from build_model import unet
+from utils import *
+from unet_model import build_unet
+
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("__MODEL_TRAINING__")
 
 
 
@@ -19,7 +26,7 @@ def build_model(n_classes: int, height: int, width: int, channel: int):
             channel : int           -> number of channel
     """
 
-    model = unet(n_classes=n_classes, height=height, width=width, channel=channel)
+    model = build_unet(n_classes=n_classes, height=height, width=width, channel=channel)
 
     return model
 
@@ -102,26 +109,16 @@ def compile_model(model, train, val, epochs: int, learning_rate: float):
 
 
 
-def dice_coef(y_true, y_pred):
-    intersection = np.sum(y_pred * y_true)
-    union = np.sum(y_pred) + np.sum(y_true)
-    dice = np.mean(2*intersection / union)
+def opt_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--trai-dir", type=str, required=True, help="path to the training dataset.")
+    parser.add_argument("--val-dir", type=str, required=True, help="path to validation directory.")
+    parser.add_argument("--epochs", type=int, required=True, help="number of epochs")
+    parser.add_argument("--learning-rate", required=True, type=float, help="learning rate.")
+    parser.add_argument("--outputs-dir", type=str, default="./outputs", help="path to the output directory.")
 
-    return round(dice, 3)
-
-
-
-def dice_coef_loss(y_true, y_pred):
-    return 1 - dice_coef(y_true, y_pred)
+    return parser.parse_args()
 
 
-def save_model(model):
-    """
-        Args:
-            model :
-    """
-
-    timestamp = datetime.date.today()
-    file_path = os.path.join('./models', f'{str(timestamp)}_unet.h5')
-    model.save(file_path)
-
+if __name__ == "__main__":
+    logger.info("Starting model training....")
