@@ -32,13 +32,15 @@ def save_model(model, outputs: str = './models'):
     file_path = os.path.join(outputs, f'{str(timestamp)}_unet.h5')
     model.save(file_path)
 
+    return model
+
 
 
 def plot_model(model, filename):
     tf.keras.utils.plot_model(model, to_file=filename, show_shapes=True)
 
 
-def plot_history(history, type, y):
+def plot_history(history, eval_type, y):
     """
         Args:
             history : List[float]         -> train and validation values
@@ -55,7 +57,11 @@ def plot_history(history, type, y):
     plt.title(f"Training vs. Validation {type.capitalize()}")
     plt.grid(True)
     plt.legend(loc='upper left')
-    plt.savefig('./outputs/{type}.jpg')
+
+    plot_filename = f"training_validation_{eval_type}.png"
+    plt.savefig(plot_filename)
+
+    return plot_filename
 
 
 def plot_learning_rate(history):
