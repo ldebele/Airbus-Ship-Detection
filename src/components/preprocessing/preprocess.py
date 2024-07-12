@@ -1,162 +1,203 @@
+
+import os
+import logging
+import argparse
 from typing import Tuple
 
-import cv2 as cv
 import numpy as np
 import pandas as pd
+
+from sklearn.model_selection import train_test_split
+
 import tensorflow as tf
+from utils import rle2mask
 
 
-def retrieve_rle(df: pd.DataFrame, img_name: str) -> str:
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+
+
+
+def wrangle_df(masks_dir):
     """
-    Retrieve the encoded pixels values for the image from the dataframe.
+    A function wrangle the dataframe.
 
     Args:
-        df (pd.DataFrame): a dataframe where the images and encoded pixels values stored.
-        img_name (str): name of specific image form the dataframe.
-
-    Returns:
-        rle (str): run-length encoded values.
-    """
-
-    # select all the encoded pixels for the image.
-    df_img = df.loc[df["ImageId"] == img_name]
-
-    # combine encoded pixels values into a single string.
-    rle = " ".join(df_img.EncodedPixels.values)
-
-    return rle
-
-
-
-def rle2mask(mask_rle: str, shape: Tuple[int, int]) -> np.ndarray:
-    """
-    Converts a run-lenght-encoder (RLE) string to a binary mask.
-
-    Args:
-        mask_rle: Run-length encoded string
-        shape: Tuple (height, width) of the output mask.
-
-    Returns:
-        binary mask of the given shape.
-    """
-
-    # split the RLE string and convert to integres.
-    s = mask_rle.split()
-    starts, lengths = [np.asarray(x, dtype=int) for x in (s[0::2], s[1::2])]
-
-    # Adjust starts to be zero-indexed
-    starts -= 1
-    # Compute the ending positions of the runs
-    ends = starts + lengths
-
-    # Initialize the mask with zeros
-    img = np.zeros(shape[0] * shape[1], dtype=np.uint8)
-
-    # Set the pixels within the runs to 255
-    for lo, hi in zip(starts, ends):
-        img[lo:hi] = 255
-
-    # Reshape the flat array to the specified shape
-    return img.reshape((shape[1], shape[0])).T
-
-
-
-def overlay_mask(image: np.ndarray, 
-                 mask: np.ndarray, 
-                 overlay_color: Tuple[int, int, int] = (0, 0, 255), 
-                 alpha: float = 0.5) -> np.ndarray:
-    """
-    Overlays a segmentation mask on a real image with a solid transparent color on segmented areas.
-
-    Args:
-        image (np.ndarray): The real image in BGR format.
-        mask (np.ndarray):  The mask image
-        overlay_color (tuple): solid color for overlay.
-        transparency: value between 0 and 1 for overlay color opacity.
-
-    Returns:
-        (np.array): the overlaid image.
-    """
-
-    # convert mask to same number of channels as actual image.
-    mask = cv.cvtColor(mask, cv.COLOR_GRAY2BGR)
-
-    # Create a color image the same size as the original image
-    colored_mask = np.zeros_like(image, dtype=np.uint8)
-    colored_mask[:] = overlay_color
+        masks_dir (str): path to the masks directory.
     
-    # Apply the mask to the colored mask
-    mask = mask.astype(bool)
-    colored_mask = cv.bitwise_and(colored_mask, colored_mask, mask=mask.astype(np.uint8))
-    
-    # Blend the original image with the colored mask
-    overlay = cv.addWeighted(image, 1.0, colored_mask, alpha, 0)
-    
-    return overlay
-
-
-def overlay_mask(mask: np.ndarray,
-                 image: np.ndarray,
-                 overlay_color: Tuple[int, int, int] = (0, 0, 255),
-                 alpha: float = 0.5) -> np.ndarray:
-    """
-    Overlays a segmentation mask on a real image with a solid transparent color on segmented areas.
-
-    Args:
-        image (np.array): The real image in BGR format.
-        mask (np.array):  The mask image
-        overlay_color (tuple): solid color for overlay.
-        transparency: value between 0 and 1 for overlay color opacity.
-
     Returns:
-        (np.array): the overlaid image.
+        df (pd.DataFrame): 
     """
-    # convert and reshape overlay_color.
-    color = np.array(overlay_color).reshape((1, 1, 3))
 
-    # create a colored mask with the same size of the image.
-    colored_mask = np.zeros_like(image, dtype=np.uint8)
+    df = pd.read_csv(masks_dir)
 
-    # fill the colored mask with the overlay color
-    colored_mask[:] = color
-
-    # convert the mask to a boolean array
-    ismasked = mask.astype(bool)
-
-    # apply the mask to the colored mask.
-    colored_mask = cv.bitwise_and(colored_mask, colored_mask, mask=ismasked.astype(np.uint8))
-
-    # copy the image for overlay
-    overlayed_image = image.copy
-
-    # apply the weighted overlay within the masked region
-    overlayed_image[mask != 0] = cv.addWeighted(
-        image[mask != 0], 1 - alpha, colored_mask[mask != 0], alpha, 0
+    df = (df
+          .groupby("ImageId")["EncodedPixels"]
+          .apply(lambda x: ' '.join(x.dropna()))
+          .reset_index()
     )
 
-    return overlayed_image
+    return df
 
 
-
-
-
-
-
-
-
-
-
-
-def data_augmentation():
-    """
+def load_data(images_dir: str,
+              masks_dir: str,
+              img_shape: Tuple[int, int]) -> Tuple[np.ndarray, np.ndarray]:
     
     """
+    Loads image
+
+    Args:
+        
+        images_dir (str):
+        masks_dir (str):
+        img_shape (tuple): 
+    
+    Returns:
+
+    """
+
+    df = wrangle_df(masks_dir)
+
+    images = []
+    masks = []
+
+    for index, row in df.iterrows():
+        row.ImageId, row.EncodedPixels
+
+        img_path = f"{images_dir}/{row.ImageId}"
+        image = tf.keras.preprocessing.image.load_img(img_path, target_size=None)
+        image = tf.keras.preprocessing.image.img_to_array(image)
+
+        mask = rle2mask(row.EncodedPixels, image.shape)
+
+        images.append(image)
+        masks.append(mask)
+
+
+    return np.array(images), np.array(masks)
+
+
+
+def split_dataset(images: np.ndarray, masks: np.ndarray):
+    """
+    A function that split the dataset and create a tensorflow datasets.
+
+    Args:
+        images (np.ndarray)
+        masks (np.ndarray)
+
+    Return:
+        images 
+        masks
+    """
+    # split into training and validation sets
+    X_train, X_val, y_train, y_val = train_test_split(images, masks, test_size=0.2, random_state=42)
+
+    # create tensorflow datasets
+    train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train))
+    val_dataset = tf.data.Dataset.from_tensor_slices((X_val, y_val))
+
+    return train_dataset, val_dataset
+
+
+
+def preprocess(image: np.ndarray, mask: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Args:
+        image (np.ndarray)
+        mask (np.ndarray)
+
+    Return:
+        image (np.ndarray)
+        mask (np.ndarray)
+    
+    """
+
+    image = tf.image.convert_image_dtype(image, tf.float32)
+    mask = tf.image.convert_image_dtype(mask, tf.float32)
+
+    return image, mask
+
+
+
+def data_augmentation(image, mask):
+    """
+    A function to augment actual image and masked image.
+
+    Args:
+        image (np.ndarray):
+        mask (np.ndarray):
+
+    Return:
+        image (np.ndarray)
+        mask (np.ndarray)
+    
+    """
+
     data_augmentation = tf.keras.Sequential([
         tf.keras.layers.RandomFlip(mode="horizontal", seed=42),
         tf.keras.layers.RandomRotation(factor=0.01, seed=42),
         tf.keras.RandomContrast(factor=0.2, seed=42)
     ])
 
+    return image, mask
+
+
+
+def run(images_dir: str, masks_dir: str, img_shape: Tuple[int, int], batch: int = 8):
+    """
+    A main function to run all the preprocess.
+
+    Args:
+        images_dir (str):
+        masks_dir (str):
+        img_shape (tuple):
+        batch (int): 
+
+    Returns:
+        train_dataset
+        val_dataset
+    """
+
+    images, masks = load_data(images_dir, masks_dir)
+    
+    train_dataset, val_dataset = split_dataset(images, masks)
+
+    train_dataset = train_dataset.map(preprocess)
+    train_dataset = train_dataset.map(lambda image, mask: (data_augmentation(image, mask)))
+    train_dataset = train_dataset.batch(batch).prefetch(tf.data.experimental.AUTOTUNE)
+
+    val_dataset = val_dataset.map(preprocess)
+    val_dataset = val_dataset.batch(batch).prefetch(tf.data.experimental.AUTOTUNE)
+
+    return train_dataset, val_dataset
+
+
+
+def parser_opt():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--images-dir", type=str, required=True, help="Path to the train directory.")
+    parser.add_argument("--masks-dir", type=str, required=True, help="Path to the mask directory.")
+    parser.add_argument("--img-shape", type=tuple, default=(640, 640), help="Image shape")
+    parser.add_argument("--batch", type=int, default=8, help="Batch size")
+
+    return parser.parse_args()
+
+
+
+if __name__ == "__main__":
+
+    args = parser_opt()
+
+    run(args.images_dir, 
+        args.masks_dir, 
+        args.img_shape, 
+        args.batch
+    )
 
 
 
