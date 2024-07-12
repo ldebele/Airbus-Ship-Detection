@@ -10,6 +10,7 @@ mv kaggle.json ~/.kaggle
 ```
 docker run \
     -v ~/.kaggle:/root/.kaggle \
+    -v ${pwd}/data:/app/data \
     airbus-ship-detection-data-ingestion \
     ./download_dataset.sh airbus-ship-detection competitions
 ```
