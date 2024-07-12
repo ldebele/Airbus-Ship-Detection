@@ -12,7 +12,7 @@ fi
 
 # check if kaggle.json file exist
 if [ ! -f ~/.kaggle/kaggle.json ]; then
-    echo "Please mount your kaggle.json file to the Dockerfile"
+    echo "Please mount your kaggle.json file to the docker container"
     exit 1
 fi
 

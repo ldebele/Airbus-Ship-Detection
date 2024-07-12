@@ -145,6 +145,11 @@ def run(images_dir: str, masks_dir: str, img_shape: Tuple[int, int], batch: int 
         val_dataset
     """
 
+    print(images_dir)
+    print(masks_dir)
+    print(img_shape)
+    print(batch)
+
     df = None
 
     images, masks = load_data(df)
@@ -177,7 +182,11 @@ if __name__ == "__main__":
 
     args = parser_opt()
 
-    run(**args)
+    run(args.images_dir, 
+        args.masks_dir, 
+        args.img_shape, 
+        args.batch
+    )
 
 
 
