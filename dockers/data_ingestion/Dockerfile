@@ -11,6 +11,3 @@ COPY /src/components/data_ingestion/download_dataset.sh .
 
 # make the script executable
 RUN chmod +x download_dataset.sh
-
-# run the script
-# CMD ["./download_dataset.sh"]
