@@ -10,37 +10,13 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 import tensorflow as tf
-from utils import rle2mask
+from utils import rle2mask, wrangle_df
 
 
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("__PRE-PROCESSING__")
 
-
-
-
-
-def wrangle_df(masks_dir):
-    """
-    A function wrangle the dataframe.
-
-    Args:
-        masks_dir (str): path to the masks directory.
-    
-    Returns:
-        df (pd.DataFrame): 
-    """
-
-    df = pd.read_csv(masks_dir)
-
-    df = (df
-          .groupby("ImageId")["EncodedPixels"]
-          .apply(lambda x: ' '.join(x.dropna()))
-          .reset_index()
-    )
-
-    return df
 
 
 def load_data(images_dir: str,
@@ -79,7 +55,6 @@ def load_data(images_dir: str,
 
 
     return np.array(images), np.array(masks)
-
 
 
 def split_dataset(images: np.ndarray, masks: np.ndarray):

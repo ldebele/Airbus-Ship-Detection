@@ -31,6 +31,29 @@ def retrieve_rle(df: pd.DataFrame, img_name: str) -> str:
 
 
 
+def wrangle_df(masks_dir):
+    """
+    A function wrangle the dataframe.
+
+    Args:
+        masks_dir (str): path to the masks directory.
+    
+    Returns:
+        df (pd.DataFrame): 
+    """
+
+    df = pd.read_csv(masks_dir)
+
+    df = (df
+          .groupby("ImageId")["EncodedPixels"]
+          .apply(lambda x: ' '.join(x.dropna()))
+          .reset_index()
+    )
+
+    return df
+
+
+
 def rle2mask(mask_rle: str, shape: Tuple[int, int]) -> np.ndarray:
     """
     Converts a run-lenght-encoder (RLE) string to a binary mask.
