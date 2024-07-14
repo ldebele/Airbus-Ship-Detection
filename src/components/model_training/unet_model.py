@@ -38,7 +38,7 @@ def encoder_block(inputs, num_filters):
     """
     
     skip = conv_block(inputs, num_filters) # convolutional block
-    max_pool = tf.keras.layers.MaxPooling2D((2,2))(input) # pooling  block
+    max_pool = tf.keras.layers.MaxPooling2D((2,2))(inputs) # pooling  block
 
     return skip, max_pool
 
@@ -55,14 +55,14 @@ def decoder_block(inputs, skip, num_filters):
     """
     # upsampling and concatenating the input features.
     upsample = tf.keras.layers.Conv2DTranspose(num_filters, (2, 2), strides=(2,2), padding='same')(inputs)  # upsampling block
-    connect_skip = tf.keras.layers.Concatenate([upsample, skip])
+    connect_skip = tf.keras.layers.concatenate([upsample, skip])
     out = conv_block(connect_skip, num_filters)
 
     return out
 
 
 
-def build_net(n_classes: int, height: int, width: int, channel: int):
+def build_unet(n_classes: int, height: int, width: int, channel: int):
     """
     Function that define the UNET Model.
     
@@ -98,6 +98,6 @@ def build_net(n_classes: int, height: int, width: int, channel: int):
 
     # output function
     outputs = tf.keras.layers.Conv2D(n_classes, (1, 1), activation='sigmoid')(u1)
-    model = tf.keras.models.Model(inputs[inputs], outputs=[outputs], name="Unet")
+    model = tf.keras.models.Model(inputs=[inputs], outputs=[outputs], name="Unet")
 
     return model

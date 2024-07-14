@@ -80,7 +80,7 @@ def rle2mask(mask_rle: str, shape: Tuple[int, int]) -> np.ndarray:
 
     # Set the pixels within the runs to 255
     for lo, hi in zip(starts, ends):
-        img[lo:hi] = 255
+        img[lo:hi] = 1
 
     # Reshape the flat array to the specified shape
     return img.reshape((shape[1], shape[0])).T

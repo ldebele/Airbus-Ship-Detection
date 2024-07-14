@@ -153,7 +153,7 @@ def run(images_dir: str, masks_dir: str, img_shape: Tuple[int, int], batch: int 
 
 
 
-def parser_opt():
+def opt_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("--images-dir", type=str, required=True, help="Path to the train directory.")
     parser.add_argument("--masks-dir", type=str, required=True, help="Path to the mask directory.")
@@ -166,7 +166,7 @@ def parser_opt():
 
 if __name__ == "__main__":
 
-    args = parser_opt()
+    args = opt_parser()
 
     run(args.images_dir, 
         args.masks_dir, 

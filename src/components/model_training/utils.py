@@ -1,6 +1,7 @@
 import os
 import datetime
 import tensorflow as tf
+import tensorflow.keras.backend as k
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,17 +9,24 @@ import matplotlib.pyplot as plt
 
 
 
-def dice_coef(y_true, y_pred):
-    intersection = np.sum(y_pred * y_true)
-    union = np.sum(y_pred) + np.sum(y_true)
-    dice = np.mean(2*intersection / union)
+# def dice_coef(y_true, y_pred):
+#     intersection = np.sum(y_pred * y_true)
+#     union = np.sum(y_pred) + np.sum(y_true)
+#     dice = np.mean(2*intersection / union)
 
-    return round(dice, 3)
+#     return round(dice, 3)
 
 
+def dice_coeff(y_true, y_pred, smooth = 1):
+    intersection = tf.keras.backend.sum(y_true * y_pred, axis=-1)
+    union = tf.keras.backend.sum(y_true, axis=-1) + tf.keras.backend.sum(y_pred, axis=-1)
+    dice_coeff = (2 * intersection + smooth) / (union + smooth)
 
-def dice_coef_loss(y_true, y_pred):
-    return 1 - dice_coef(y_true, y_pred)
+    return dice_coeff
+
+
+def dice_coeff_loss(y_true, y_pred):
+    return 1 - dice_coeff(y_true, y_pred)
 
 
 def save_model(model, outputs: str = './models'):
