@@ -30,7 +30,6 @@ mlflow.tensowflow.autolog(
 )
 
 
-
 def compile_model(model, train_data, val_data, epochs: int, learning_rate: float):
     """
         Compiles and trains the model.
@@ -82,7 +81,6 @@ def compile_model(model, train_data, val_data, epochs: int, learning_rate: float
     return history
 
 
-
 def train(train_dataset: np.ndarray,
           val_dataset: np.ndarray,
           num_classes: int, 
@@ -114,7 +112,6 @@ def train(train_dataset: np.ndarray,
     logger.info(f"Dice coefficient loss plot saved in {plot_filename}.")
     plot_filename = plot_history(history, eval_type="dice_coeff", outputs_dir=outputs_dir)
     logger.info(f"Dice coefficient accuracy plot saved in {plot_filename}.")
-
 
 
 def opt_parser():

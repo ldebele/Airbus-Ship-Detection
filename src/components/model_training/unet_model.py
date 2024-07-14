@@ -9,7 +9,7 @@ def conv_block(inputs, num_filters):
         Args:
             input: The input tensor to the convolutional block.
             num_filters (int): The number of filters for the convolutional layers.
-            
+
         Return:
             act: The output tensor ater applying the convolutional block.
     """
@@ -63,7 +63,6 @@ def decoder_block(inputs, skip, num_filters):
     out = conv_block(connect_skip, num_filters)
 
     return out
-
 
 
 def build_unet(n_classes: int, height: int, width: int, channel: int):

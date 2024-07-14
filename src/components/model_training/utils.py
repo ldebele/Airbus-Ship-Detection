@@ -52,7 +52,6 @@ def save_model(model, outputs: str = './models'):
     return model
 
 
-
 def plot_model(model, filename):
     """Saves a plot for the model architecture."""
     tf.keras.utils.plot_model(model, to_file=filename, show_shapes=True)
