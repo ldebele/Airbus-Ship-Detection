@@ -31,6 +31,18 @@ mlflow.tensowflow.autolog(
 
 
 def load_dataset(train_dir: str, val_dir: str, batch: int):
+    """
+    A function that loads the training and validition dataset from TFRecord format.
+
+    Args:
+        train_dir (str): Path to the training directory.
+        val_dir (str): Path to the validition directory.
+        batch (int): Number of batch size.
+    
+    Returns:
+        train_dataset (tf.data.Dataset): Trining dataset.
+        val_dataset (tf.data.Dataset): Validation dataset.
+    """
 
     # load training and validation dataset.
     train_dataset = load_tfrecord(train_dir)
@@ -46,7 +58,11 @@ def load_dataset(train_dir: str, val_dir: str, batch: int):
     return train_dataset, val_dataset
   
 
-def compile_model(model, train_data, val_data, epochs: int, learning_rate: float):
+def compile_model(model: tf.keras.models, 
+                  train_data: tf.data.Dataset, 
+                  val_data: tf.data.Dataset, 
+                  epochs: int, 
+                  learning_rate: float):
     """
         Compiles and trains the model.
 
@@ -68,11 +84,11 @@ def compile_model(model, train_data, val_data, epochs: int, learning_rate: float
         metrics=[dice_coeff])
     
     # define early stopping to prevent overfitting
-    early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
-                                                 patience=5,
-                                                 verbose=1,
-                                                 mode='max',
-                                                 restore_best_weights=True)
+    early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_dice_loss',
+                                                      patience=5,
+                                                      verbose=1,
+                                                      mode='max',
+                                                      restore_best_weights=True)
 
     # save checkpoints
     checkpoint_path = '/mnt/data/models/checkpoint'
@@ -81,24 +97,34 @@ def compile_model(model, train_data, val_data, epochs: int, learning_rate: float
 
     # define model checkpoint callback
     checkpoint = tf.keras.callbacks.ModelCheckpoint(checkpoint_path,
-                                                    monitor='val_loss',
+                                                    monitor='val_dice_loss',
                                                     save_best_only=True,
                                                     save_freq='epoch')
-
+    
+    # define the learning rate reducer.
+    reduceLR = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_dice_coef',
+                                                    factor=0.2,
+                                                    patience=3,
+                                                    mode='max',
+                                                    min_delta=0.001,
+                                                    cooldown=2,
+                                                    min_lr=1e-6,
+                                                    verbose=1)
+    
     # fit the model with callbacks and mlflow logging.
     with mlflow.start_run() as run:
         history = model.fit(train_data,
                             validation_data=val_data,
                             epochs=epochs,
-                            callbacks=[early_stopping, checkpoint, MlflowCallback(run)])
+                            callbacks=[early_stopping, checkpoint, reduceLR, MlflowCallback(run)])
     
     logger.info("Training model successfully completed.")
 
     return history
 
 
-def train(train_dataset: np.ndarray,
-          val_dataset: np.ndarray,
+def train(train_dir: str,
+          val_dir: str,
           num_classes: int, 
           img_shape: Tuple[int, int, int], 
           batch: int,
@@ -108,8 +134,8 @@ def train(train_dataset: np.ndarray,
         Trains the U-Net model.
 
         Args:
-            train_dataset (np.ndarray): Training data.
-            val_dataset (np.ndarray): Validation data.
+            train_dir (str): Path to the training directory.
+            val_dir (str): Path to the validition directory.
             n_classes (int): Number of classes.
             img_shape (Tuple(int, int, int)): Image shape.
             epochs (int): Number of training epochs.
@@ -117,7 +143,7 @@ def train(train_dataset: np.ndarray,
     """
 
     # load training and validation dataset
-    train_dataset, val_dataset = load_dataset(train_dataset, val_dataset, batch)
+    train_dataset, val_dataset = load_dataset(train_dir, val_dir, batch)
 
     # build the unet model
     model = build_unet(n_classes=num_classes, height=img_shape[0], width=img_shape[1], channel=img_shape[2])
@@ -152,8 +178,8 @@ if __name__ == "__main__":
 
     # train the model
     train(
-        train_dataset=args.train_dir,
-        val_dataset=args.val_dir,
+        train_dir=args.train_dir,
+        val_dir=args.val_dir,
         num_classes=args.num_classes,
         img_shape=args.img_shape,
         batch=args.batch,
