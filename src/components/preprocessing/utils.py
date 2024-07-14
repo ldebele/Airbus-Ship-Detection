@@ -3,35 +3,10 @@ from typing import Tuple
 import cv2 as cv
 import numpy as np
 import pandas as pd
-import tensorflow as tf
 
 
 
-
-
-def retrieve_rle(df: pd.DataFrame, img_name: str) -> str:
-    """
-    Retrieve the encoded pixels values for the image from the dataframe.
-
-    Args:
-        df (pd.DataFrame): a dataframe where the images and encoded pixels values stored.
-        img_name (str): name of specific image form the dataframe.
-
-    Returns:
-        rle (str): run-length encoded values.
-    """
-
-    # select all the encoded pixels for the image.
-    df_img = df.loc[df["ImageId"] == img_name]
-
-    # combine encoded pixels values into a single string.
-    rle = " ".join(df_img.EncodedPixels.values)
-
-    return rle
-
-
-
-def wrangle_df(masks_dir):
+def wrangle_df(masks_dir: str) -> pd.DataFrame:
     """
     A function wrangle the dataframe.
 
@@ -50,8 +25,9 @@ def wrangle_df(masks_dir):
           .reset_index()
     )
 
-    return df
+    df["EncodedPixels"] = df["EncodedPixels"].replace("", np.nan)
 
+    return df
 
 
 def rle2mask(mask_rle: str, shape: Tuple[int, int]) -> np.ndarray:
@@ -84,7 +60,6 @@ def rle2mask(mask_rle: str, shape: Tuple[int, int]) -> np.ndarray:
 
     # Reshape the flat array to the specified shape
     return img.reshape((shape[1], shape[0])).T
-
 
 
 def overlay_mask(mask: np.ndarray,
