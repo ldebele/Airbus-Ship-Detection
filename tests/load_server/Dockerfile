@@ -13,4 +13,4 @@ COPY . .
 EXPOSE 8089
 
 # Run the locust server
-CMD ["locust", "-f", "locustfile.py"]
+CMD ["locust", "-f", "load_server_test.py"]
