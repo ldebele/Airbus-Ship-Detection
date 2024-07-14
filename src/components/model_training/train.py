@@ -142,7 +142,6 @@ def opt_parser():
     parser.add_argument("--batch", type=int, default=8, help="Number of batch size.")
     parser.add_argument("--epochs", type=int, required=True, help="Number of training epochs")
     parser.add_argument("--learning-rate", required=True, type=float, help="Learning rate for the optimizer.")
-    parser.add_argument("--outputs-dir", type=str, default="./outputs", help="Path to the output directory.")
 
     return parser.parse_args()
 
@@ -160,6 +159,5 @@ if __name__ == "__main__":
         img_shape=args.img_shape,
         batch=args.batch,
         epochs=args.epochs,
-        learning_rate=args.learning_rate,
-        outputs_dir=args.outputs_dir
+        learning_rate=args.learning_rate
     )
