@@ -5,15 +5,15 @@ from typing import Tuple
 
 import numpy as np
 import pandas as pd
+import tensorflow as tf
 
 from sklearn.model_selection import train_test_split
 
-import tensorflow as tf
-from utils import rle2mask, wrangle_df
+from utils import rle2mask, wrangle_df, save_tfrecord
 
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("__PRE-PROCESSING__")
+logger = logging.getLogger("__PREPROCESSING__")
 
 
 
@@ -149,16 +149,16 @@ def run(images_dir: str, masks_dir: str, img_shape: Tuple[int, int], batch: int 
     train_dataset = train_dataset.map(preprocess)
     # apply augmentation to the training datasets.
     train_dataset = train_dataset.map(lambda image, mask: (data_augmentation(image, mask)))
-    # batch and prefetch training data for efficient training.
-    train_dataset = train_dataset.batch(batch).prefetch(tf.data.experimental.AUTOTUNE)
-
+   
     # preprocess the validation data.
     val_dataset = val_dataset.map(preprocess)
-    # batch and prefetch validation data for efficient training.
-    val_dataset = val_dataset.batch(batch).prefetch(tf.data.experimental.AUTOTUNE)
     logger.info("Completed the preprocessing and augmentation of the images and masks datasets.")
 
-    return train_dataset, val_dataset
+    # save training and validation dataset.
+    save_tfrecord(train_dataset, '/mnt/data/train.tfrecord')
+    save_tfrecord(val_dataset, '/mnt/data/val.tfrecord')
+    logger.info("Successfully saved the training and validation datasets in TFRecord format.")
+
 
 
 def opt_parser():
@@ -166,7 +166,6 @@ def opt_parser():
     parser.add_argument("--images-dir", type=str, required=True, help="Path to the train directory.")
     parser.add_argument("--masks-dir", type=str, required=True, help="Path to the mask directory.")
     parser.add_argument("--img-shape", type=tuple, default=(640, 640), help="Image shape")
-    parser.add_argument("--batch", type=int, default=8, help="Batch size")
 
     return parser.parse_args()
 
@@ -177,9 +176,5 @@ if __name__ == "__main__":
 
     run(args.images_dir, 
         args.masks_dir, 
-        args.img_shape, 
-        args.batch
+        args.img_shape
     )
-
-
-

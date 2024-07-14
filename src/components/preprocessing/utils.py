@@ -3,6 +3,7 @@ from typing import Tuple
 import cv2 as cv
 import numpy as np
 import pandas as pd
+import tensorflow as tf
 
 
 
@@ -104,9 +105,23 @@ def overlay_mask(mask: np.ndarray,
     return overlayed_image
 
 
+def _bytes_feature(value):
+    """Returns a bytes list from a string / byte."""
+    return tf.train.Feature(bytes_list=tf.train.BytesList(value=[tf.io.encode_jpeg(value).numpy()]))
+
+def serialize_example(image, mask):
+    feature = {
+        'image': _bytes_feature(image),
+        'mask': _bytes_feature(mask)
+    }
+    example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
+    return example_proto.SerializeToString()
 
 
-
-
-
-
+def save_tfrecord(dataset, filename):
+    """Save dataset in TFRecord format."""
+    with tf.io.TFRecordWriter(filename) as writer:
+        for image, mask in dataset:
+            tf_example = serialize_example(image, mask)
+            writer.write(tf_example)
+         

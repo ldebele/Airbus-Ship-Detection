@@ -42,11 +42,20 @@ def dice_coeff_loss(y_true, y_pred):
     return 1 - dice_coeff(y_true, y_pred)
 
 
-def save_model(model, outputs: str = './models'):
+def load_tfrecord(file_path):
+    """Load dataset from TFRecord."""
+    dataset = tf.data.TFRecordDataset(file_path)
+    
+
+
+def save_model(model):
     """Saves the trained model."""
 
+    output_dir = "/mnt/data/models"
+    os.makedirs(output_dir, exist_ok=True)
+    
     timestamp = datetime.datetime.today()
-    file_path = os.path.join(outputs, f'{str(timestamp)}_unet.h5')
+    file_path = os.path.join(output_dir, f'{str(timestamp)}_unet.h5')
     model.save(file_path)
 
     return model
@@ -57,7 +66,7 @@ def plot_model(model, filename):
     tf.keras.utils.plot_model(model, to_file=filename, show_shapes=True)
 
 
-def plot_history(history, eval_type: str, y: Tuple[int, int], outputs_dir: str) -> str:
+def plot_history(history, eval_type: str, y: Tuple[int, int]) -> str:
     """
     Plots training vs. validation for evaluation metric.
 
@@ -65,7 +74,6 @@ def plot_history(history, eval_type: str, y: Tuple[int, int], outputs_dir: str) 
             history (List[float]): Train and validation values.
             eval_type (str): Evaluation type [dice_coeff_loss, dice_coeff].
             y : tuple(float, float): Coordinate values (y limiter).
-            outputs_dir (str): Path to the output directory.
 
         Returns:
             plot_filename (str): path to the saved file.
@@ -82,13 +90,16 @@ def plot_history(history, eval_type: str, y: Tuple[int, int], outputs_dir: str) 
     plt.grid(True)
     plt.legend(loc='upper left')
 
+    outputs_dir = "/mnt/data/results"
+    os.makedirs(outputs_dir, exist_ok=True)
+
     plot_filename = f"{outputs_dir}/training_validation_{eval_type}.png"
     plt.savefig(plot_filename)
 
     return plot_filename
 
 
-def plot_learning_rate(history, outputs_dir: str):
+def plot_learning_rate(history):
     """Plots the learning rate curve."""
 
     plt.figure(figsize=(10, 6))
@@ -98,6 +109,10 @@ def plot_learning_rate(history, outputs_dir: str):
     plt.ylabel("Loss")
     plt.title("Learning Rate")
     plt.grid(True)
+
+    outputs_dir = "/mnt/data/results"
+    os.makedirs(outputs_dir, exist_ok=True)
+
     plot_filename = f"{outputs_dir}/Learning_rate.png"
     plt.savefig(plot_filename)
 

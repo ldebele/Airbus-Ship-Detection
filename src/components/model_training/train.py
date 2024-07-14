@@ -30,6 +30,23 @@ mlflow.tensowflow.autolog(
 )
 
 
+def load_dataset(train_dir: str, val_dir: str, batch: int):
+
+    # load training and validation dataset.
+    train_dataset = load_tfrecord(train_dir)
+    val_dataset = load_tfrecord(val_dir)
+
+    # batch and prefetch training data for efficient training.
+    train_dataset = train_dataset.batch(batch).prefetch(tf.data.experimental.AUTOTUNE)
+
+    # batch and prefetch validation data for efficient training.
+    val_dataset = val_dataset.batch(batch).prefetch(tf.data.experimental.AUTOTUNE)
+
+    logger.info("Loading training and validation dataset successfully completed.")
+
+    return train_dataset, val_dataset
+  
+
 def compile_model(model, train_data, val_data, epochs: int, learning_rate: float):
     """
         Compiles and trains the model.
@@ -59,7 +76,7 @@ def compile_model(model, train_data, val_data, epochs: int, learning_rate: float
                                                  restore_best_weights=True)
 
     # save checkpoints
-    checkpoint_path = './models/checkpoint'
+    checkpoint_path = '/mnt/data/models/checkpoint'
     if not os.path.exists(checkpoint_path):
         os.makedirs(checkpoint_path, exist_ok=True)
 
@@ -85,9 +102,9 @@ def train(train_dataset: np.ndarray,
           val_dataset: np.ndarray,
           num_classes: int, 
           img_shape: Tuple[int, int, int], 
+          batch: int,
           epochs: int, 
-          learning_rate: float,
-          outputs_dir: str) -> None:
+          learning_rate: float) -> None:
     """
         Trains the U-Net model.
 
@@ -98,8 +115,10 @@ def train(train_dataset: np.ndarray,
             img_shape (Tuple(int, int, int)): Image shape.
             epochs (int): Number of training epochs.
             learning_rate (float): Learning rate for the optimizer.
-            outputs_dir (str): Path to the output directory.
     """
+
+    # load training and validation dataset
+    train_dataset, val_dataset = load_dataset(train_dataset, val_dataset, batch)
 
     # build the unet model
     model = build_unet(n_classes=num_classes, height=img_shape[0], width=img_shape[1], channel=img_shape[2])
@@ -108,9 +127,9 @@ def train(train_dataset: np.ndarray,
     history = compile_model(model, train_dataset, val_dataset, epochs, learning_rate)
 
     # plot the dice_coeff and loss of the unet model
-    plot_filename = plot_history(history, eval_type="loss", outputs_dir=outputs_dir)
+    plot_filename = plot_history(history, eval_type="loss")
     logger.info(f"Dice coefficient loss plot saved in {plot_filename}.")
-    plot_filename = plot_history(history, eval_type="dice_coeff", outputs_dir=outputs_dir)
+    plot_filename = plot_history(history, eval_type="dice_coeff")
     logger.info(f"Dice coefficient accuracy plot saved in {plot_filename}.")
 
 
@@ -120,6 +139,7 @@ def opt_parser():
     parser.add_argument("--val-dir", type=str, required=True, help="Path to validation directory.")
     parser.add_argument("--num-classes", type=int, required=True, help="Number of classes.")
     parser.add_argument("--img-shape", type=Tuple(int, int, int), default=(640, 640, 3), help="Image shape.")
+    parser.add_argument("--batch", type=int, default=8, help="Number of batch size.")
     parser.add_argument("--epochs", type=int, required=True, help="Number of training epochs")
     parser.add_argument("--learning-rate", required=True, type=float, help="Learning rate for the optimizer.")
     parser.add_argument("--outputs-dir", type=str, default="./outputs", help="Path to the output directory.")
@@ -138,6 +158,7 @@ if __name__ == "__main__":
         val_dataset=args.val_dir,
         num_classes=args.num_classes,
         img_shape=args.img_shape,
+        batch=args.batch,
         epochs=args.epochs,
         learning_rate=args.learning_rate,
         outputs_dir=args.outputs_dir
