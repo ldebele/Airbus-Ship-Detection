@@ -1,23 +1,26 @@
 import os
 import datetime
-import tensorflow as tf
-import tensorflow.keras.backend as k
+from typing import Tuple
 
-import numpy as np
+import tensorflow as tf
 import matplotlib.pyplot as plt
 
 
 
 
-# def dice_coef(y_true, y_pred):
-#     intersection = np.sum(y_pred * y_true)
-#     union = np.sum(y_pred) + np.sum(y_true)
-#     dice = np.mean(2*intersection / union)
-
-#     return round(dice, 3)
-
-
 def dice_coeff(y_true, y_pred, smooth = 1):
+    """
+    Calculate the dice coefficient, a metric for measuring the similarity between two sets.
+
+    Args:
+        y_true: Ground truth labels.
+        y_pred: Predicted labels.
+        smooth: Smoothing factor to prevent division by zero.
+
+    Returns:
+        A tensor of shape (batch_size, ) representing the dice coefficient.
+    """
+
     intersection = tf.keras.backend.sum(y_true * y_pred, axis=-1)
     union = tf.keras.backend.sum(y_true, axis=-1) + tf.keras.backend.sum(y_pred, axis=-1)
     dice_coeff = (2 * intersection + smooth) / (union + smooth)
@@ -26,15 +29,21 @@ def dice_coeff(y_true, y_pred, smooth = 1):
 
 
 def dice_coeff_loss(y_true, y_pred):
+    """
+    Calculate the dice coefficient loss.
+
+    Args:
+        y_true: Ground truth labels.
+        y_pred: Predicted labels.
+
+    Returns:
+        A tensor of shape (batch_size, ) representing the dice coefficient loss.
+    """
     return 1 - dice_coeff(y_true, y_pred)
 
 
 def save_model(model, outputs: str = './models'):
-    """
-        Args:
-            model:
-            outputs: str
-    """
+    """Saves the trained model."""
 
     timestamp = datetime.datetime.today()
     file_path = os.path.join(outputs, f'{str(timestamp)}_unet.h5')
@@ -45,16 +54,24 @@ def save_model(model, outputs: str = './models'):
 
 
 def plot_model(model, filename):
+    """Saves a plot for the model architecture."""
     tf.keras.utils.plot_model(model, to_file=filename, show_shapes=True)
 
 
-def plot_history(history, eval_type, y):
+def plot_history(history, eval_type: str, y: Tuple[int, int], outputs_dir: str) -> str:
     """
+    Plots training vs. validation for evaluation metric.
+
         Args:
-            history : List[float]         -> train and validation values
-            type : str                    -> evaluation type [loss, accuracy]
-            y : tuple(float, float)       -> y coordinate values (y limiter)
+            history (List[float]): Train and validation values.
+            eval_type (str): Evaluation type [dice_coeff_loss, dice_coeff].
+            y : tuple(float, float): Coordinate values (y limiter).
+            outputs_dir (str): Path to the output directory.
+
+        Returns:
+            plot_filename (str): path to the saved file.
     """
+
 
     plt.figure(figsize=(5, 4))
     plt.plot(history.history[type], label=f"Training {type}")
@@ -66,17 +83,14 @@ def plot_history(history, eval_type, y):
     plt.grid(True)
     plt.legend(loc='upper left')
 
-    plot_filename = f"training_validation_{eval_type}.png"
+    plot_filename = f"{outputs_dir}/training_validation_{eval_type}.png"
     plt.savefig(plot_filename)
 
     return plot_filename
 
 
-def plot_learning_rate(history):
-    """
-        Args:
-            history : List[float]       -> 
-    """
+def plot_learning_rate(history, outputs_dir: str):
+    """Plots the learning rate curve."""
 
     plt.figure(figsize=(10, 6))
     plt.semelogx(history.history['lr'], history.history['loss'])
@@ -85,4 +99,7 @@ def plot_learning_rate(history):
     plt.ylabel("Loss")
     plt.title("Learning Rate")
     plt.grid(True)
-    plt.savefig('./outputs/Learning_rate.jpg')
+    plot_filename = f"{outputs_dir}/Learning_rate.png"
+    plt.savefig(plot_filename)
+
+    return plot_filename

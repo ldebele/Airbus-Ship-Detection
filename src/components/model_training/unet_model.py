@@ -1,17 +1,17 @@
-import sys
 
 import tensorflow as tf
 
 
 
-
 def conv_block(inputs, num_filters):
     """
+    A function defines a convolutional block.
         Args:
-            input :
-            num_filters: int
+            input: The input tensor to the convolutional block.
+            num_filters (int): The number of filters for the convolutional layers.
+            
         Return:
-            act :
+            act: The output tensor ater applying the convolutional block.
     """
     # implementing the first conv block.
     conv = tf.keras.layers.Conv2D(num_filters, 3, padding='same')(inputs)
@@ -26,15 +26,17 @@ def conv_block(inputs, num_filters):
     return act
 
 
-
 def encoder_block(inputs, num_filters):
     """
+    A function defines encoder block for the U-Net architecture.
+
         Args:
-            inputs :
-            num_filters: int
-        Return:
-            skip :
-            max_pool :
+            inputs: The input tensor.
+            num_filters: The number of filters for the convolutional layers.
+
+        Returns:
+            skip: The output tensor from the convolutional block.
+            max_pool: The output tensor after max pooling.
     """
     
     skip = conv_block(inputs, num_filters) # convolutional block
@@ -43,15 +45,17 @@ def encoder_block(inputs, num_filters):
     return skip, max_pool
 
 
-
 def decoder_block(inputs, skip, num_filters):
     """
+    A function defines a decoder block for the U-Net architecture.
+
         Args:
-            inputs: 
-            skip: 
-            num_filters: int
-        Return :
-            out :
+            inputs: The input tensor.
+            skip:  The skip connection tensor from the corresponding encoder block.
+            num_filters: The number of filters for the convolutional layers.
+
+        Return:
+            out: The output tensor after applying the decoder block.
     """
     # upsampling and concatenating the input features.
     upsample = tf.keras.layers.Conv2DTranspose(num_filters, (2, 2), strides=(2,2), padding='same')(inputs)  # upsampling block
@@ -64,15 +68,16 @@ def decoder_block(inputs, skip, num_filters):
 
 def build_unet(n_classes: int, height: int, width: int, channel: int):
     """
-    Function that define the UNET Model.
+    A function that defines and build the U-Net model for image segmentation.
     
         Args :
-            n_classes: int
-            height: int
-            width: int
-            channel: int
+            n_classes (int): The number of output classes.
+            height (int): The height of the input images.
+            width (int): The width of the input images.
+            channel (int): The number of channels in the input images.
+
         Return:
-            model:
+            model: The compiled U-Net model.
     """
 
     inputs = tf.keras.layers.Input((height, width, channel))
