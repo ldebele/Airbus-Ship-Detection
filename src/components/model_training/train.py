@@ -41,7 +41,6 @@ def load_dataset(train_dir: str, val_dir: str, batch: int):
 
     # batch and prefetch validation data for efficient training.
     val_dataset = val_dataset.batch(batch).prefetch(tf.data.experimental.AUTOTUNE)
-
     logger.info("Loading training and validation dataset successfully completed.")
 
     return train_dataset, val_dataset

@@ -45,7 +45,7 @@ with DAG(
     # Task 4: Model Evaluation
     model_evaluation = DockerOperator(
         image="",
-        command="python3 evaluation.py --test-dir='/mnt/data/'",
+        command="python3 evaluation.py --test-dir='/mnt/data/' --model-dir='/mnt/data/models' --target-size=(768. 768) --batch=8",
         task_id="model_evaluation",
         volume_mounts=[
             "/data/test:/mnt/data/test"
