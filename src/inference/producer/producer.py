@@ -18,6 +18,7 @@ logging.basicConfig(
 logger = logging.getLogger("__PRODUCER_")
 
 
+
 def fetch_image_from_api(api_url: str):
     """
     Function to fetch a satellite image from API
@@ -35,7 +36,7 @@ def fetch_image_from_api(api_url: str):
 
 def send_image_to_kafka(producer, topic, api_url) -> None:
     """
-    Continuously fetches image data from the given API URL and publishes it to the specified Kafka topic
+    Continuously fetches image data from the API URL and publishes it to the Kafka topic
     
         Args:
             producer (kafka.KafkaProducer): Kakfa producer instance used to send messages.
@@ -50,7 +51,6 @@ def send_image_to_kafka(producer, topic, api_url) -> None:
             # publish image data to kafka topic
             producer.send(topic, {'image': img_data})
             logger.info("Image published to kafka topic.")
-
 
 
 def opt_parser():
