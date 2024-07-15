@@ -82,23 +82,19 @@ def build_unet(n_classes: int, height: int, width: int, channel: int):
     inputs = tf.keras.layers.Input((height, width, channel))
 
     # Defining the encoder (down sampler)
-    skip1, max_pool1 = encoder_block(inputs, num_filters=16)
-    skip2, max_pool2 = encoder_block(max_pool1, num_filters=32)
-    skip3, max_pool3 = encoder_block(max_pool2, num_filters=64)
-    skip4, max_pool4 = encoder_block(max_pool3, num_filters=128)
-    skip5, max_pool5 = encoder_block(max_pool4, num_filters=256)
-    skip6, max_pool6 = encoder_block(max_pool5, num_filters=512)
+    skip1, max_pool1 = encoder_block(inputs, num_filters=64)
+    skip2, max_pool2 = encoder_block(max_pool1, num_filters=128)
+    skip3, max_pool3 = encoder_block(max_pool2, num_filters=256)
+    skip4, max_pool4 = encoder_block(max_pool3, num_filters=512)
 
     # Defining the bottleneck
-    bridge = conv_block(max_pool6, num_filters=1024)
+    bridge = conv_block(max_pool4, num_filters=1024)
 
     # Defining the decoder (up sampler)
-    u6 = decoder_block(bridge, skip6, num_filters=512)
-    u5 = decoder_block(u6, skip5, num_filters=256)
-    u4 = decoder_block(u5, skip4, num_filters=128)
-    u3 = decoder_block(u4, skip3, num_filters=64)
-    u2 = decoder_block(u3, skip2, num_filters=32)
-    u1 = decoder_block(u2, skip1, num_filters=16)
+    u4 = decoder_block(bridge, skip4, num_filters=512)
+    u3 = decoder_block(u4, skip3, num_filters=256)
+    u2 = decoder_block(u3, skip2, num_filters=128)
+    u1 = decoder_block(u2, skip1, num_filters=64)
 
     # output function
     outputs = tf.keras.layers.Conv2D(n_classes, (1, 1), activation='sigmoid')(u1)
