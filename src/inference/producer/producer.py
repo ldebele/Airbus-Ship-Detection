@@ -7,6 +7,10 @@ from kafka import KafkaProducer
 
 
 
+TOPIC="ship_image"
+BOOTSTRAP_SERVER="localhost:9092"
+
+
 logging.basicConfig(
     format='%(asctime)s %(levelname)s %(message)s',
     level=logging.INFO,
@@ -14,16 +18,12 @@ logging.basicConfig(
 logger = logging.getLogger("__PRODUCER_")
 
 
-TOPIC="ship_image"
-BOOTSTRAP_SERVER="localhost:9092"
-
-
 def fetch_image_from_api(api_url: str):
     """
     Function to fetch a satellite image from API
 
         Args:
-            api_url (str):  
+            api_url (str): URL of the API that provides the image data. 
     """
 
     response = requests.get(api_url, stream=True)
@@ -37,10 +37,10 @@ def send_image_to_kafka(producer, topic, api_url) -> None:
     """
     Continuously fetches image data from the given API URL and publishes it to the specified Kafka topic
     
-    Args:
-        producer (kafka.KafkaProducer): Kakfa producer instance used to send messages.
-        topic (str): Name of the Kafka topic to publish messages to.
-        api_url (str): URL of the API that provides the image data.
+        Args:
+            producer (kafka.KafkaProducer): Kakfa producer instance used to send messages.
+            topic (str): Name of the Kafka topic to publish messages to.
+            api_url (str): URL of the API that provides the image data.
     """
 
     while True:
@@ -60,9 +60,7 @@ def opt_parser():
     return parser.parse_args()
 
 
-
 if __name__ == "__main__":
-
     logger.info("Kafka Producer streaming...")
 
     # parse the cli arguments
