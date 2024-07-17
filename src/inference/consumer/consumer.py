@@ -8,7 +8,7 @@ from kafka import KafkaConsumer
 
 TOPIC="ship_image"
 BOOTSTRAP_SERVER="localhost:9092"
-API_URL="localhost:8080/predict"
+API_URL="http://127.0.0.1:8080/predict"
 
 logging.basicConfig(
     format='%(asctime)s %(levelname)s %(message)s',
@@ -29,7 +29,7 @@ def get_prediction(img_data) -> dict:
         dict: The prediction response as a dictionary.
     """
 
-    payload = {"file": ("image.jpg", img_data)}
+    payload = {"file": ("image.jpg", img_data, 'image/jpeg')}
 
     try:
         # send a POST request to prediction endpoint
@@ -42,25 +42,40 @@ def get_prediction(img_data) -> dict:
         logger.info(f"Prediction received successfully.")
         return prediction
     
-    except requests.exceptions.Requests.RequestException as e:
+    # except requests.exceptions.Requests.RequestException as e:
+    except Exception as e:
         logger.error(f"Error occurred while sending the image for prediction: {e}")
 
 
 def consume_image_from_kafka(consumer):
     """
-    Continuously consumers messages from the kafka topic and processes the image.
+    Continuously consumes messages from the kafka topic and processes the image.
 
     Args:
         consumer (kafka.KafkaConsumer): Kafka consumer instance used to receive messages.
     """
 
-    for message in consumer:
-        img_data = message.value['image']
-        logger.info("Image consumed from kafka.")
-        
-        # get the prediction.
-        get_prediction(img_data)
+    while True:
+        try:
+            # limit timeout to 1 second
+            message = consumer.poll(1.0)
+           
+            if message is None or message == {}:
+                continue
 
+            for _, value in message.items():
+                for msg_val in value:
+
+                    img_data = msg_val.value['image']
+                    logger.info(f"Image consumed from kafka.")
+
+                    # send the image to the prediction endpoint API
+                    pred_result = get_prediction(img_data)
+                    logger.info(f"Prediction result: {pred_result}")    
+
+        except KeyboardInterrupt:
+            break
+    
 
 if __name__ == "__main__":
     logger.info("Kafka Consumer started consuming...")    
@@ -70,6 +85,8 @@ if __name__ == "__main__":
         bootstrap_servers=BOOTSTRAP_SERVER,
         auto_offset_reset='earliest',
         enable_auto_commit=True,
-        group_id='image-consumer',
+        # group_id='image-consumer',
+        group_id= 'consumer.group.id.image-consumer',
         value_deserializer=lambda x: json.loads(x.decode('utf-8'))
     )
+    consume_image_from_kafka(consumer)

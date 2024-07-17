@@ -1,5 +1,5 @@
 import io
-
+import time
 import cv2
 from PIL import Image
 
@@ -12,7 +12,6 @@ from fastapi.responses import RedirectResponse, StreamingResponse
 
 
 app = FastAPI(title="Airbus-Ship-Detection")
-
 
 
 @app.on_event("startup")
@@ -44,7 +43,7 @@ def get_prediction(image_data: bytes) -> bytes:
         return buffer.tobytes()
     else:
         raise ValueError("Failed to encode image.")
-
+    
 
 
 @app.post("/predict")

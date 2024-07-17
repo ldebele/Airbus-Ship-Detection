@@ -21,7 +21,7 @@ logger = logging.getLogger("__PRODUCER_")
 
 def fetch_image_from_api(api_url: str):
     """
-    Function to fetch a satellite image from API
+    Function to fetch a satellite image from API.
 
         Args:
             api_url (str): URL of the API that provides the image data. 
