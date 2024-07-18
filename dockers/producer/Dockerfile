@@ -7,12 +7,11 @@ ENV PYTHONUNBUFFERED 1
 # Set the working directory
 WORKDIR /app 
 
-# Copy poetry related files.
-COPY poetry.lock pyproject.toml /app/
+# Install Poetry
+RUN pip install poetry
 
 # Install dependencies
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-dev --only api
+RUN poetry install --no-root --with pub-sub
 
 # Copy producers file into container
 COPY /src/inference/producer/ .

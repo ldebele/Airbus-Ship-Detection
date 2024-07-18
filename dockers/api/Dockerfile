@@ -7,9 +7,11 @@ ENV PYTHONUNBUFFERED 1
 # Set the working directory
 WORKDIR /app
 
+# Install Poetry
+RUN pip install poetry
+
 # Install dependencies
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-dev --no-kafka --only api
+RUN poetry install --no-root --with api
 
 # Copy the codes into container
 COPY /src/inference/api/ .
