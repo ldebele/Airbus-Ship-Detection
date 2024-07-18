@@ -19,46 +19,6 @@ logger = logging.getLogger("__PREPROCESSING__")
 
 
 
-def split_dataset(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    """
-    Splits the datasets into training and validation sets.
-
-    Args:
-        df (pd.DataFrame)
-
-    Return:
-        train_df (pd.DataFrame): Trining dataframe.
-        val_df (pd.DataFrame): Validation dataframe
-    """
-    # split into training and validation sets
-    train_df, val_df = train_test_split(df, test_size=0.2, random_state=42)
-
-    return train_df, val_df
-
-
-def data_augmentation(image, mask):
-    """
-    A function to augment actual image and masked image.
-
-    Args:
-        image (np.ndarray):
-        mask (np.ndarray):
-
-    Return:
-        image (np.ndarray)
-        mask (np.ndarray)
-    
-    """
-
-    data_augmentation = tf.keras.Sequential([
-        tf.keras.layers.RandomFlip(mode="horizontal", seed=42),
-        tf.keras.layers.RandomRotation(factor=0.01, seed=42),
-        tf.keras.RandomContrast(factor=0.2, seed=42)
-    ])
-
-    return image, mask
-
-
 class DataGenerator(Sequence):
     """Custom data generator"""
     def __init__(self, dataframe, image_dir, batch_size, image_size=(256, 256), **kwargs):
@@ -104,6 +64,22 @@ class DataGenerator(Sequence):
 
         return images, masks
 
+
+def split_dataset(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Splits the datasets into training and validation sets.
+
+    Args:
+        df (pd.DataFrame)
+
+    Return:
+        train_df (pd.DataFrame): Trining dataframe.
+        val_df (pd.DataFrame): Validation dataframe
+    """
+    # split into training and validation sets
+    train_df, val_df = train_test_split(df, test_size=0.2, random_state=42)
+
+    return train_df, val_df
 
 
 def run(images_dir: str, masks_dir: str, batch: int, img_shape: Tuple[int, int]):

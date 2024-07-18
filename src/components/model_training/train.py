@@ -17,14 +17,15 @@ from unet_model import build_unet
 
 
 EXPERIMENT_NAME = "Airbus-Ship-Detection"
+MLFLOW_TRACKING_URI="http://0.0.0.0:5000"
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("__MODEL_TRAINING__")
 
-
+mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 mlflow.set_experiment(EXPERIMENT_NAME)
 mlflow.tensowflow.autolog(
-    log_datasets=False,
+    log_dataseUntitledts=False,
     save_model_kwargs="h5",
     checkpoint=True,
 )
@@ -48,10 +49,8 @@ def load_dataset(train_dir: str, val_dir: str, batch: int):
     train_dataset = load_tfrecord(train_dir)
     val_dataset = load_tfrecord(val_dir)
 
-    # batch and prefetch training data for efficient training.
+    # batch and prefetch training and validation data for efficient training.
     train_dataset = train_dataset.batch(batch).prefetch(tf.data.experimental.AUTOTUNE)
-
-    # batch and prefetch validation data for efficient training.
     val_dataset = val_dataset.batch(batch).prefetch(tf.data.experimental.AUTOTUNE)
     logger.info("Loading training and validation dataset successfully completed.")
 
