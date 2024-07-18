@@ -1,0 +1,21 @@
+FROM python:3.11.1-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Set the working directory
+WORKDIR /app 
+
+# Copy poetry related files.
+COPY poetry.lock pyproject.toml /app/
+
+# Install dependencies
+RUN poetry config virtualenvs.create false \
+    && poetry install --no-dev --only api
+
+# Copy producers file into container
+COPY /src/inference/producer/ .
+
+# Run producer
+CMD ["python", "producer.py"]
