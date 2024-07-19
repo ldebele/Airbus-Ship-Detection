@@ -65,23 +65,6 @@ class DataGenerator(Sequence):
         return images, masks
 
 
-def split_dataset(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    """
-    Splits the datasets into training and validation sets.
-
-    Args:
-        df (pd.DataFrame)
-
-    Return:
-        train_df (pd.DataFrame): Trining dataframe.
-        val_df (pd.DataFrame): Validation dataframe
-    """
-    # split into training and validation sets
-    train_df, val_df = train_test_split(df, test_size=0.2, random_state=42)
-
-    return train_df, val_df
-
-
 def run(images_dir: str, masks_dir: str, batch: int, img_shape: Tuple[int, int]):
     """
     A main function that runs all the data preprocessing for image segmentation.
@@ -100,7 +83,7 @@ def run(images_dir: str, masks_dir: str, batch: int, img_shape: Tuple[int, int])
     df = wrangle_df(masks_dir)
 
     # split data into training and validation sets.
-    train_df, val_df = split_dataset(df)
+    train_df, val_df = train_test_split(df, test_size=0.2, random_state=42)
     logger.info("Split the dataset into training and validation sets.")
 
     # preprocess the training and validation data.

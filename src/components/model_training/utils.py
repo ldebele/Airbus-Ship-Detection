@@ -43,31 +43,6 @@ def dice_coeff_loss(y_true, y_pred):
     return 1 - dice_coeff(y_true, y_pred)
 
 
-def _parse_function(proto):
-    features_description = {
-        'image': tf.io.FixedLenFeature([], tf.string),
-        'mask': tf.io.FixedLenFeature([], tf.string),
-    }
-
-    parsed_features = tf.io.parse_single_example(proto, features_description)
-    image = tf.io.decode_jpeg(parsed_features['image'], channel=3)
-    mask = tf.io.decode_png(parsed_features['mask'], channel=1)
-
-    # Normalize the image and mask
-    image = tf.cast(image, tf.float32) / 255.0
-    mask = tf.cast(mask, tf.float32)
-
-    return image, mask
-
-
-def load_tfrecord(file_path):
-    """Load dataset from TFRecord."""
-    dataset = tf.data.TFRecordDataset(file_path)
-    dataset = dataset.map(_parse_function, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-
-    return dataset
-    
-
 def save_model(model):
     """Saves the trained model."""
 

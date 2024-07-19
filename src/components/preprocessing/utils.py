@@ -103,31 +103,3 @@ def overlay_mask(mask: np.ndarray,
     )
 
     return overlayed_image
-
-
-def _bytes_feature(value):
-    """Returns a bytes list from a string / byte."""
-    if isinstance(value, type(tf.constant(0))):
-        value = value.numpy()
-    return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
-
-def serialize_example(image, mask):
-    """
-    Creates message ready to be written to a file.
-    """
-    feature = {
-        'image': _bytes_feature(tf.io.encode_jpeg(image).numpy()),
-        'mask': _bytes_feature(tf.io.encode_png(mask).numpy())
-    }
-    example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
-    return example_proto.SerializeToString()
-
-
-def save_tfrecord(dataset, filename):
-    """Save dataset in TFRecord format."""
-    with tf.io.TFRecordWriter(filename) as writer:
-        for batch_index in range(len(dataset)):
-            images, masks = dataset[batch_index]
-            for image, mask in zip(images, masks):
-                tf_example = serialize_example(image, mask)
-                writer.write(tf_example)
