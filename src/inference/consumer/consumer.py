@@ -7,7 +7,7 @@ from kafka import KafkaConsumer
 
 
 TOPIC="ship_image"
-BOOTSTRAP_SERVER="localhost:9092"
+BOOTSTRAP_SERVER="kafka:9092"
 API_URL="http://127.0.0.1:8080/predict"
 
 logging.basicConfig(

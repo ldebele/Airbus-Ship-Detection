@@ -8,7 +8,7 @@ from kafka import KafkaProducer
 
 
 TOPIC="ship_image"
-BOOTSTRAP_SERVER="localhost:9092"
+BOOTSTRAP_SERVER="kafka:9092"
 
 
 logging.basicConfig(
