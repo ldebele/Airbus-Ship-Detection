@@ -15,6 +15,7 @@ RUN poetry install --no-root --with pub-sub
 
 # Copy producers file into container
 COPY /src/inference/producer/ .
+COPY /scripts/wait-for-it.sh .
 
-# Run producer
-CMD ["python", "producer.py"]
+# make the script executable
+RUN chmod +x wait-for-it.sh

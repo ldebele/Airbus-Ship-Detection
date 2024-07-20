@@ -18,7 +18,9 @@ RUN poetry install --no-root --with pub-sub
 
 # Copy consumers file into container
 COPY /src/inference/consumer/ .
+COPY /scripts/wait-for-it.sh .
 
-# Run consumer
-CMD ["python", "consumer.py"]
+# make the script executable
+RUN chmod +x wait-for-it.sh
+
 
