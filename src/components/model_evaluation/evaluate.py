@@ -5,6 +5,7 @@ from typing import Tuple
 import mlflow
 
 import tensorflow as tf
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 
 EXPERIMENT_NAME = "Airbus-Ship-Detection"
@@ -53,7 +54,7 @@ def preprocess(test_dir: str, target_size: Tuple[int, int], batch: int):
         test_generator (tf.data.Dataset): A batch generator preprocessed test images. 
     """
 
-    test_datagen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255.0)
+    test_datagen = ImageDataGenerator(rescale=1./255.0)
 
     test_generator = test_datagen.flow_from_directory(test_dir,
                                                       target_size=target_size,
@@ -89,7 +90,7 @@ def opt_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--test-dir', type=str, required=True, help="Path to the test directory.")
     parser.add_argument('--model-dir', type=str, required=True, help="Path to the model directory.")
-    parser.add_argument('--target-size', type=str, default=(768, 768, 3), help="The desired output image size.")
+    parser.add_argument('--target-size', type=str, default=(512, 512, 3), help="The desired output image size.")
     parser.add_argument('--batch', type=int, default=8, help="Number of batch size.")
     
     return parser.parse_args()

@@ -26,18 +26,16 @@ class SaveTFRecord:
         Creates a tf.train.Example message ready to be written to a file.
         """
         feature = {
-            'image': self._bytes_feature(tf.io.encode_jpeg(image).numpy()),
-            'mask': self._bytes_feature(tf.io.encode_jpeg(mask).numpy())
+            'image': self._bytes_feature(tf.io.encode_jpeg(tf.cast(image, tf.uint8))),
+            'mask': self._bytes_feature(tf.io.encode_jpeg(tf.cast(mask, tf.uint8)))
         }
         example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
         return example_proto.SerializeToString()
     
-    
     def save_tfrecord(self, dataset, filename):
         """Save dataset in TFRecord format."""
         with tf.io.TFRecordWriter(filename) as writer:
-            for batch_index in range(len(dataset)):
-                images, masks = dataset[batch_index]
+            for images, masks in dataset:
                 for image, mask in zip(images, masks):
                     tf_example = self.serialize_example(image, mask)
                     writer.write(tf_example)

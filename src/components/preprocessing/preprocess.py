@@ -7,16 +7,15 @@ import cv2 as cv
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from tensorflow.keras.utils import Sequence
 
 from sklearn.model_selection import train_test_split
 
-from utils import rle2mask, wrangle_df, save_tfrecord
+from save_tfrecord import SaveTFRecord
+from utils import rle2mask, wrangle_df
 
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("__PREPROCESSING__")
-
 
 
 
@@ -47,9 +46,8 @@ def generator(dataframe, images_dir, img_shape):
                 # If no encoded pixels, create an empty mask
                 mask = np.zeros((image.shape[0], image.shape[1]), dtype=np.float32)
             
-            # Resize and Normalize the image
+            # Resize the image
             image = cv.resize(image, img_shape)
-            image = image / 255.0
             
             # Resize the mask
             mask = cv.resize(mask, img_shape, interpolation=cv.INTER_NEAREST)
@@ -116,8 +114,9 @@ def run(images_dir: str, masks_dir: str, batch: int, img_shape: Tuple[int, int])
     logger.info("Completed the preprocessing of training and validation datasets.")
    
     # save training and validation dataset.
-    save_tfrecord(train_dataset, '/mnt/data/train.tfrecord')
-    save_tfrecord(val_dataset, '/mnt/data/val.tfrecord')
+    tfrecord = SaveTFRecord()
+    tfrecord.save_tfrecord(train_dataset, '/mnt/data/train.tfrecord')
+    tfrecord.save_tfrecord(val_dataset, '/mnt/data/val.tfrecord')
     logger.info("Successfully saved the training and validation datasets in TFRecord format.")
 
 

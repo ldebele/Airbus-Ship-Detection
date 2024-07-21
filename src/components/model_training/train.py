@@ -14,6 +14,7 @@ import tensorflow as tf
 sys.path.append('./')
 from utils import *
 from unet_model import build_unet
+from read_tfrecord import ReadTFRecord
 
 
 EXPERIMENT_NAME = "Airbus-Ship-Detection"
@@ -46,12 +47,8 @@ def load_dataset(train_dir: str, val_dir: str, batch: int):
     """
 
     # load training and validation dataset.
-    train_dataset = load_tfrecord(train_dir)
-    val_dataset = load_tfrecord(val_dir)
-
-    # batch and prefetch training and validation data for efficient training.
-    train_dataset = train_dataset.batch(batch).prefetch(tf.data.experimental.AUTOTUNE)
-    val_dataset = val_dataset.batch(batch).prefetch(tf.data.experimental.AUTOTUNE)
+    train_dataset = ReadTFRecord.load_tfrecord(train_dir, batch)
+    val_dataset = ReadTFRecord.load_tfrecord(val_dir, batch)
     logger.info("Loading training and validation dataset successfully completed.")
 
     return train_dataset, val_dataset
@@ -100,22 +97,12 @@ def compile_model(model: tf.keras.models,
                                                     save_best_only=True,
                                                     save_freq='epoch')
     
-    # define the learning rate reducer.
-    reduceLR = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_dice_coef',
-                                                    factor=0.2,
-                                                    patience=3,
-                                                    mode='max',
-                                                    min_delta=0.001,
-                                                    cooldown=2,
-                                                    min_lr=1e-6,
-                                                    verbose=1)
-    
     # fit the model with callbacks and mlflow logging.
     with mlflow.start_run() as run:
         history = model.fit(train_data,
                             validation_data=val_data,
                             epochs=epochs,
-                            callbacks=[early_stopping, checkpoint, reduceLR, MlflowCallback(run)])
+                            callbacks=[early_stopping, checkpoint, MlflowCallback(run)])
     
     logger.info("Training model successfully completed.")
 
