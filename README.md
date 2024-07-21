@@ -56,6 +56,7 @@ This architecture is based on an event-driven approach for making predictions us
     ```
 
 2. Install Docker and Docker Compose
+
     Follow the instructions on the [Docker website]() to install Docker and Docker Compose.
 
 3. Build Docker images
@@ -84,9 +85,8 @@ This architecture is based on an event-driven approach for making predictions us
 - Airflow Web Interface.
 
     Once the cluster has started up, you can log into the web interface and begin experimenting the pipelines.
-    Access the Airflow web interface at [http://localhost:8080](http://localhost:8080) using the defult credentials:
-        - Username: `airflow`
-        - Password: `airflow`
+
+    Access the Airflow web interface at [http://localhost:8080](http://localhost:8080) using the defult credentials: Username: `airflow` and Password: `airflow`
 
 - MLflow Web Interface
 
