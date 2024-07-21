@@ -8,19 +8,19 @@ ENV PYTHONUNBUFFERED 1
 WORKDIR /app 
 
 # Copy poetry related files.
-COPY poetry.lock pyproject.toml /app/
+COPY poetry.lock pyproject.toml ./
 
 # Install Poetry
 RUN pip install poetry
 
 # Install dependencies
-RUN poetry install --no-root --with pub-sub
+RUN poetry install --no-root --with pubsub
 
 # Copy consumers file into container
 COPY /src/inference/consumer/ .
 COPY /scripts/wait-for-it.sh .
 
 # make the script executable
-RUN chmod +x wait-for-it.sh
+# RUN chmod +x wait-for-it.sh
 
 

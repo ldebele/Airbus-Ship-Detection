@@ -1,13 +1,26 @@
-FROM tensorflow/tensorflow:latest
+FROM python:3.11.1-slim
+
+# Set environment variables to ensure poetry installs in the correct location
+ENV POETRY_HOME=/opt/poetry \
+    POETRY_VIRTUALENVS_CREATE=false \
+    POETRY_NO_INTERACTION=1
+
+# Install Poetry
+RUN apt-get update && apt-get install -y curl \
+    && curl -sSL https://install.python-poetry.org | python3 - \
+    && apt-get clean
+
+# Add Poetry to PATH
+ENV PATH="$POETRY_HOME/bin:$PATH"
 
 # set working directory
 WORKDIR /app
 
-# Install Poetry
-RUN pip install poetry
-
 # Copy poetry related files.
-COPY poetry.lock pyproject.toml /app/
+COPY poetry.lock pyproject.toml ./
+
+# Ensure the poetry.lock file is up to date
+RUN poetry lock --no-update
 
 # Install the dependencies
-RUN poetry install --without dev test inference
+RUN poetry install --no-root
