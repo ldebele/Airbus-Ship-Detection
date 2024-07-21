@@ -1,13 +1,16 @@
+
 # Airbus-Ship-Detection
 
 
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
+![GitHub contributors](https://img.shields.io/github/contributors/ldebele/Airbus-Ship-Detection)
+![GitHub forks](https://img.shields.io/github/forks/ldebele/Airbus-Ship-Detection?style=social)
+![GitHub stars](https://img.shields.io/github/stars/ldebele/Airbus-Ship-Detection?style=social)
+![GitHub issues](https://img.shields.io/github/issues/ldebele/Airbus-Ship-Detection)
+![GitHub license](https://img.shields.io/github/license/ldebele/Airbus-Ship-Detection)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue)](https://www.linkedin.com/in/lemi-debela?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3BuAr7JLGOTc%2Br4epMeWrVMw%3D%3D)
 
+
+<!-- Table of Contents -->
 ## Table of Contents
 - [Project Overview](#project-overview)
 - [Architecture](#architecture)
@@ -16,12 +19,11 @@
 - [Contact](#contact)
 
 
-
 <!-- ABOUT THE PROJECT -->
 ## Project Overview
-The aims of this project is to detect ships from satellite images using an event-driven architecture. The project implements an End-to-End U-Net based deep learning model for detecting ships. The model predicts segmentations masevent-driven-architectureks indicating the ships within the images.
+The aims of this project is to detect ships from satellite images using an event-driven architecture. The project implements an end-to-end U-Net based deep learning model for detecting ships. The model predicts segmentations masks indicating the ships within the images.
 
-
+<!-- Architecture -->
 ## Architecture
 The project consists of two main architectures, each containing specific pipelines for different purposes:
 
@@ -47,27 +49,27 @@ This architecture is based on an event-driven approach for making predictions us
 
 <!-- GETTING STARTED -->
 ## Getting Started
-### 1.Clone the Repository
-``` bash
-git clone https://github.com/ldebele/Airbus-Ship-Detection.git
-cd Airbus-Ship-Detection 
-```
+1. Clone the Repository
+    ``` bash
+    git clone https://github.com/ldebele/Airbus-Ship-Detection.git
+    cd Airbus-Ship-Detection 
+    ```
 
- ### 2. Install Docker and Docker Compose
+2. Install Docker and Docker Compose
     Follow the instructions on the [Docker website]() to install Docker and Docker Compose.
 
-### 3. Build Docker images
-``` bash
-make 
-```
-### 4. Start the pipelines.
+3. Build Docker images
+    ```sh
+    make 
+    ```
+4. Start the pipelines.
 
- #### - To start the inference pipeline.
-``` bash
-docker-compose up 
-```
+- To start the inference pipeline.
+    ``` bash
+    docker-compose up 
+    ```
 
-- #### To start the training pipeline.
+- To start the training pipeline.
     - Initialize the database
     ``` bash
     docker-compose -f docker-compose.training.yml up airflow-init
@@ -77,22 +79,26 @@ docker-compose up
     docker-compose -f docker-compose.training.yml up
     ```
 
-### 5. Accessing the web interfaces.
+5. Accessing the web interfaces.
 
-- #### Airflow Web Interface
+- Airflow Web Interface.
+
     Once the cluster has started up, you can log into the web interface and begin experimenting the pipelines.
     Access the Airflow web interface at [http://localhost:8080](http://localhost:8080) using the defult credentials:
         - Username: `airflow`
         - Password: `airflow`
 
-- #### MLflow Web Interface
+- MLflow Web Interface
+
     Access the MLflow experiment tracker at [http://localhost:5000](http://localhost:5000)
 
-- #### API Web Server:
+- API Web Server
+
     Access the prediction inference API web server at [http://localhost:8585](http://localhost:8585)
 
 
-### 6. Stop and delete containers
+6. Stop and delete containers
+
 - For the inference 
     ```bash
     docker-compose down --volumes --rmi all
@@ -102,22 +108,12 @@ docker-compose up
     docker-compose -f docker-compose.training.yaml down --volumes --rmi all
     ```
 
-
-
 <!-- LICENSE -->
 ## License
 This project is licensed under the MIT License. See [LICENSE](./LICENCE) file for more details.
-<!-- <p align="right">(<a href="#readme-top">back to top</a>)</p> -->
 
 <!-- CONTACT -->
 ## Contact
 Lemi Debela - lemidebele@gmail.com
 
 Project Link: [https://github.com/ldebele/Airbus-Ship-Detection](https://github.com/ldebele/Airbus-Ship-Detection)
-
-<!-- <p align="right">(<a href="#readme-top">back to top</a>)</p> -->
-
-
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
