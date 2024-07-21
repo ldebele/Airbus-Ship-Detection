@@ -19,18 +19,21 @@
 
 <!-- ABOUT THE PROJECT -->
 ## Project Overview
-The aims of this project is to detect ships from satellite images using an event-driven architecture. The project implements an End-to-End U-Net based deep learning model for detecting ships. The model predicts segmentations masks indicating the ships within the images.
+The aims of this project is to detect ships from satellite images using an event-driven architecture. The project implements an End-to-End U-Net based deep learning model for detecting ships. The model predicts segmentations masevent-driven-architectureks indicating the ships within the images.
 
 
 ## Architecture
 The project consists of two main architectures, each containing specific pipelines for different purposes:
 
 - #### Training Pipeline Architecture
-For training the model and consists of four components/ The components are orchestrated using Airflow:
+For training the model and consists of four components. The components are orchestrated using Airflow:
 1. Data Ingestion: Download the datasets from kaggle.
 2. Preprocessing: Apply preprocessing techiniques to the datasets.
 3. Model Training: Builds and trains the ship detection model.
 4. Model Evaluation: Evaluates the performance of the trained model.
+<p align="center">
+  <img src="./assets/training-pipeline.png" alt="Training Workflow">
+</p>
 
 - #### Inference Pipeline 
 This architecture is based on an event-driven approach for making predictions using the trained model.
@@ -82,7 +85,7 @@ docker-compose up
         - Username: `airflow`
         - Password: `airflow`
 
-- #### Mlflow Web Interface
+- #### MLflow Web Interface
     Access the MLflow experiment tracker at [http://localhost:5000](http://localhost:5000)
 
 - #### API Web Server:
@@ -103,7 +106,7 @@ docker-compose up
 
 <!-- LICENSE -->
 ## License
-This project is licensed under the MIT License. See [LICENSE]() file for more details.
+This project is licensed under the MIT License. See [LICENSE](./LICENCE) file for more details.
 <!-- <p align="right">(<a href="#readme-top">back to top</a>)</p> -->
 
 <!-- CONTACT -->

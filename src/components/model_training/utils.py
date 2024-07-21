@@ -55,9 +55,12 @@ def save_model(model, output_dir = "/mnt/data/models"):
     return file_path
 
 
-def plot_model(model, filename):
+def plot_model(model, output_dir: str = './ouputs'):
     """Saves a plot for the model architecture."""
-    tf.keras.utils.plot_model(model, to_file=filename, show_shapes=True)
+
+    os.makedirs(output_dir, exist_ok=True)
+    file_path = os.path.join(output_dir, 'model_summary.png')
+    tf.keras.utils.plot_model(model, to_file=file_path, show_shapes=True)
 
 
 def plot_history(history, eval_type: str, y: Tuple[int, int], outputs_dir: str = "/mnt/data/results") -> str:
@@ -110,3 +113,4 @@ def plot_learning_rate(history, outputs_dir = "/mnt/data/results"):
     plt.savefig(plot_filename)
 
     return plot_filename
+

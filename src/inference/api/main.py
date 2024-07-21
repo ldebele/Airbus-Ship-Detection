@@ -18,7 +18,7 @@ app = FastAPI(title="Airbus-Ship-Detection")
 def load_model():
     # Load the model
     global model
-    model_path = ""
+    model_path = "./ouputs/models/"
     model = tf.keras.models.load_model(model_path)
 
 
@@ -62,4 +62,4 @@ async def predict(file: UploadFile = File(...)):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    uvicorn.run(app, host="0.0.0.0", port=8585)
