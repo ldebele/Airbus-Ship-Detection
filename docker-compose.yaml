@@ -37,16 +37,16 @@ services:
 
   producer:
     build:
-      context: ./dockers/producer
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./dockers/producer/Dockerfile
     depends_on:
       - kafka
     entrypoint: ["./wait-for-it.sh", "kafka:9092", "--", "python", "producer.py"]
 
   consumer:
     build:
-      context: ./dockers/consumer
-      dockerfile: Dockerfile 
+      context: .
+      dockerfile: ./dockers/consumer/Dockerfile 
     depends_on:
       - kafka
     entrypoint: ["./wait-for-it.sh", "kafka:9092", "--", "python", "consumer.py"]
