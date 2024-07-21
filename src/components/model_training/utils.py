@@ -53,7 +53,7 @@ def save_model(model):
     file_path = os.path.join(output_dir, f'{str(timestamp)}_unet.h5')
     model.save(file_path)
 
-    return model
+    return file_path
 
 
 def plot_model(model, filename):

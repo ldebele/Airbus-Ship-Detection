@@ -19,50 +19,74 @@ logger = logging.getLogger("__PREPROCESSING__")
 
 
 
-class DataGenerator(Sequence):
-    """Custom data generator"""
-    def __init__(self, dataframe, image_dir, batch_size, image_size=(256, 256), **kwargs):
-        super().__init__(**kwargs)
-        self.dataframe = dataframe
-        self.image_dir = image_dir
-        self.batch_size = batch_size
-        self.image_size = image_size
-        self.on_epoch_end()
 
-    def __len__(self):
-        return int(np.floor(len(self.dataframe) / self.batch_size))
+def generator(dataframe, images_dir, img_shape):
+    """
+    Function that creates a generator function for yielding images and masks.
 
-    def __getitem__(self, index):
-        batch_df = self.dataframe.iloc[index * self.batch_size:(index + 1) * self.batch_size]
-        images, masks = self.__data_generation(batch_df)
-        return images, masks
+    Args:
+        dataframe (pd.DataFrame): DataFrame.
+        images_dir (str): Path to the images directory.
+        img_shape (tuple): Desired images and masks size.
 
-    def on_epoch_end(self):
-        self.dataframe = self.dataframe.sample(frac=1).reset_index(drop=True)
+    Returns:
+        generator (tuple): generator that yields (image, mask).
+    """
 
-    def __data_generation(self, batch_df):
-        images = np.empty((self.batch_size, *self.image_size, 3), dtype=np.float32)
-        masks = np.empty((self.batch_size, *self.image_size, 1), dtype=np.float32)
-
-        for i, (_, row) in enumerate(batch_df.iterrows()):
-            image_path = f"{self.image_dir}/{row.ImageId}"
+    def _generator():            
+        for i, (_, row) in enumerate(dataframe.iterrows()):
+            image_path = f"{images_dir}/{row.ImageId}"
+            # Read the image
             image = cv.imread(image_path)
             
+            # Check if there are encoded pixels for the mask
             if not pd.isna(row.EncodedPixels):
+                # Convert encoded mask to a binary mask
                 mask = rle2mask(row.EncodedPixels, image.shape[:2])
             else:
-                mask = np.zeros((image.shape[0], image.shape[1]), dtype=np.uint8)
+                # If no encoded pixels, create an empty mask
+                mask = np.zeros((image.shape[0], image.shape[1]), dtype=np.float32)
             
-            image = cv.resize(image, self.image_size)
+            # Resize and Normalize the image
+            image = cv.resize(image, img_shape)
             image = image / 255.0
             
-            mask = cv.resize(mask, self.image_size, interpolation=cv.INTER_NEAREST)
+            # Resize the mask
+            mask = cv.resize(mask, img_shape, interpolation=cv.INTER_NEAREST)
             mask = np.expand_dims(mask, axis=-1)
 
-            images[i,] = image
-            masks[i,] = mask
+            yield image, mask
 
-        return images, masks
+    return _generator
+
+
+def create_tf_dataset(dataframe, images_dir, img_shape, batch):
+    """
+    Function that creates a TensorFlow dataset.
+
+    Args:
+        dataframe (pd.DataFrame): DataFrame containing image file names and RLE encoded masks.
+        images_dir (str): Path to the images directory.
+        img_shape (tuple): Desired images and masks size.
+        batch (int): Number of batch size.
+
+    Returns:
+        dataset (tf.data.Dataset): TensorFlow dataset.
+    """
+
+    # Create a TensorFlow dataset
+    dataset = tf.data.Dataset.from_generator(
+        generator(dataframe, images_dir, img_shape),
+        output_signature=(
+            tf.TensorSpec(shape=(img_shape[0], img_shape[1], 3), dtype=tf.float32),
+            tf.TensorSpec(shape=(img_shape[0], img_shape[1], 1), dtype=tf.float32)
+        )
+    )
+
+    # Batch the dataset and prefetch for better performance
+    dataset = dataset.batch(batch).prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+
+    return dataset
 
 
 def run(images_dir: str, masks_dir: str, batch: int, img_shape: Tuple[int, int]):
@@ -87,8 +111,8 @@ def run(images_dir: str, masks_dir: str, batch: int, img_shape: Tuple[int, int])
     logger.info("Split the dataset into training and validation sets.")
 
     # preprocess the training and validation data.
-    train_dataset = DataGenerator(train_df, images_dir, batch, img_shape) 
-    val_dataset = DataGenerator(val_df, images_dir, batch, img_shape)
+    train_dataset = create_tf_dataset(train_df, images_dir, img_shape, batch)
+    val_dataset = create_tf_dataset(val_df, images_dir, img_shape, batch)
     logger.info("Completed the preprocessing of training and validation datasets.")
    
     # save training and validation dataset.
