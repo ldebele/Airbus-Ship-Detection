@@ -1,5 +1,5 @@
 import io
-import time
+import glob
 import cv2
 from PIL import Image
 
@@ -18,8 +18,14 @@ app = FastAPI(title="Airbus-Ship-Detection")
 def load_model():
     # Load the model
     global model
-    model_path = "./ouputs/models/"
-    model = tf.keras.models.load_model(model_path)
+    model_path = "./ouputs/models/unet_*.h5"
+    # Find the path matching the pattern
+    model_files = glob.glob(model_path)
+
+    if not model_files:
+        raise FileNotFoundError("No model files found matching the pattern")
+
+    model = tf.keras.models.load_model(model_files[0])
 
 
 # redirect

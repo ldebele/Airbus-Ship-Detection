@@ -48,8 +48,9 @@ def save_model(model, output_dir = "/mnt/data/models"):
 
     os.makedirs(output_dir, exist_ok=True)
     
-    timestamp = datetime.datetime.today()
-    file_path = os.path.join(output_dir, f'unet_{str(timestamp)}.h5')
+    timestamp = datetime.now()
+    formatted_timestamp = timestamp.strftime("%Y%m%d%H:%M")
+    file_path = os.path.join(output_dir, f'unet_{formatted_timestamp}.h5')
     model.save(file_path)
 
     return file_path
