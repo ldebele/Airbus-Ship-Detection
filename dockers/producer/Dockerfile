@@ -7,11 +7,8 @@ ENV PYTHONUNBUFFERED 1
 # Set the working directory
 WORKDIR /app 
 
-# Install Poetry
-RUN pip install poetry
-
 # Install dependencies
-RUN poetry add kafka-python requests
+RUN pip install kafka-python requests
 
 # Copy producers file into container
 COPY /src/inference/producer/ .

@@ -1,10 +1,20 @@
 
 
-.PHONY: all_inference all_training base api producer consumer data-ingestion preprocessing model-training model-evaluation
+.PHONY: all_inference all_training base api producer consumer data-ingestion preprocessing model-training model-evaluation start-training start-inference
 
-all_inference: api producer consumer
+all_inference: base api producer consumer
 
 all_training: base data-ingestion preprocessing model-training model-evaluation
+
+
+start-training: base data-ingestion preprocessing model-training model-evaluation
+	docker-compose -f docker-compose.training.yml down && \
+	docker-compose -f docker-compose.training.yml up
+
+start-inference:
+	docker-compose down && \
+	docker-compose up
+
 
 base:
 	docker build -f dockers/Dockerfile.base -t ship-detection-base:latest .
@@ -30,3 +40,13 @@ model-training: base
 model-evaluation: base
 	docker build -f dockers/model_evaluation/Dockerfile -t ship-detection-model-evaluation:latest .
 
+
+airflow-init:
+	docker-compose -f docker-compose.training.yml down && \
+	docker-compose -f docker-compose.training.yml up airflow-init
+
+cleanup:
+	docker-compose -f --volumes --rmi all && \
+	docker-compose -f docker-compose.training.yaml down --volumes --rmi all && \
+	docker system prune -f
+	

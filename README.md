@@ -60,8 +60,13 @@ This architecture is based on an event-driven approach for making predictions us
     Follow the instructions on the [Docker website]() to install Docker and Docker Compose.
 
 3. Build Docker images
+- To build all inference-related images:
     ```sh
-    make 
+    make all_inference
+    ```
+- To build all training-related images:
+    ```
+    make all_training
     ```
 4. Start the pipelines.
 
@@ -98,14 +103,8 @@ This architecture is based on an event-driven approach for making predictions us
 
 
 6. Stop and delete containers
-
-- For the inference 
     ```bash
-    docker-compose down --volumes --rmi all
-    ```
-- For the training pipelines
-    ```bash
-    docker-compose -f docker-compose.training.yaml down --volumes --rmi all
+    make cleanup
     ```
 
 <!-- LICENSE -->
