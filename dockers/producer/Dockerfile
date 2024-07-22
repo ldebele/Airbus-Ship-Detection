@@ -10,11 +10,8 @@ WORKDIR /app
 # Install Poetry
 RUN pip install poetry
 
-# Copy poetry related files.
-COPY poetry.lock pyproject.toml ./
-
 # Install dependencies
-RUN poetry install --no-root --with pubsub
+RUN poetry add kafka-python requests
 
 # Copy producers file into container
 COPY /src/inference/producer/ .

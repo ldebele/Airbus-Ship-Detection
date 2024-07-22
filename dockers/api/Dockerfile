@@ -1,4 +1,4 @@
-FROM airbus-ship-detection-base:latest
+FROM ship-detection-base:latest
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -10,17 +10,14 @@ WORKDIR /app
 # Install Poetry
 RUN pip install poetry
 
-# Copy poetry related files.
-COPY poetry.lock pyproject.toml ./
-
 # Install dependencies
-RUN poetry install --no-root --with api
+RUN poetry add fastapi
 
 # Copy the codes into container
 COPY /src/inference/api/ .
 
 # Expose the port
-EXPOSE 8080
+EXPOSE 8585
 
 # start the api.
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8585"]

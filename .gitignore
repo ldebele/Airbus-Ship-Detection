@@ -163,6 +163,7 @@ cython_debug/
 
 # kaggle credential
 kaggle.json
+/.kaggle
 
 # dataset
 data/

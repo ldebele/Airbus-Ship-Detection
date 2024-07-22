@@ -23,4 +23,4 @@ COPY poetry.lock pyproject.toml ./
 RUN poetry lock --no-update
 
 # Install the dependencies
-RUN poetry install --no-root
+RUN poetry install

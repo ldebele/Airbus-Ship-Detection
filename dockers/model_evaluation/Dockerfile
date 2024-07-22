@@ -1,4 +1,4 @@
-FROM airbus-ship-detection:latest
+FROM ship-detection-base:latest
 
 # Set the working directory
 WORKDIR /app/components
