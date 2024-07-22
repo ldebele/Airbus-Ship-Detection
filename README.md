@@ -72,17 +72,17 @@ This architecture is based on an event-driven approach for making predictions us
 
 - To start the inference pipeline.
     ``` bash
-    docker-compose up 
+    make start-inference
     ```
 
 - To start the training pipeline.
     - Initialize the database
     ``` bash
-    docker-compose -f docker-compose.training.yml up airflow-init
+    make airflow-init
     ```
     - Running the airflow
     ```bash
-    docker-compose -f docker-compose.training.yml up
+    make start-training
     ```
 
 5. Accessing the web interfaces.
