@@ -57,7 +57,7 @@ This architecture is based on an event-driven approach for making predictions us
 
 2. Install Docker and Docker Compose
 
-    Follow the instructions on the [Docker website]() to install Docker and Docker Compose.
+    Follow the instructions on the [Docker website](https://docs.docker.com/engine/install/) to install Docker and Docker Compose.
 
 3. Build Docker images
 - To build all inference-related images:

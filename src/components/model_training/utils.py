@@ -1,6 +1,5 @@
 import os
-import datetime
-from typing import Tuple
+from datetime import datetime
 
 import tensorflow as tf
 import matplotlib.pyplot as plt
@@ -43,35 +42,36 @@ def dice_coeff_loss(y_true, y_pred):
     return 1 - dice_coeff(y_true, y_pred)
 
 
-def save_model(model, output_dir = "/mnt/data/models"):
+def save_model(model, output_dir = "./outputs/results/models"):
     """Saves the trained model."""
 
     os.makedirs(output_dir, exist_ok=True)
     
     timestamp = datetime.now()
-    formatted_timestamp = timestamp.strftime("%Y%m%d%H:%M")
-    file_path = os.path.join(output_dir, f'unet_{formatted_timestamp}.h5')
+    formatted_timestamp = timestamp.strftime("%Y%m%d%H%M")
+    file_path = os.path.join(output_dir, f'unet_{formatted_timestamp}.keras')
     model.save(file_path)
 
     return file_path
 
 
-def plot_model(model, output_dir: str = './ouputs'):
+def plot_model(model, output_dir: str = './outputs/results'):
     """Saves a plot for the model architecture."""
 
     os.makedirs(output_dir, exist_ok=True)
     file_path = os.path.join(output_dir, 'model_summary.png')
-    tf.keras.utils.plot_model(model, to_file=file_path, show_shapes=True)
+    plot = tf.keras.utils.plot_model(model, to_file=file_path, show_shapes=True)
+
+    return file_path
 
 
-def plot_history(history, eval_type: str, y: Tuple[int, int], outputs_dir: str = "/mnt/data/results") -> str:
+def plot_history(history, eval_type: str, outputs_dir: str = "./outputs/results") -> str:
     """
     Plots training vs. validation for evaluation metric.
 
         Args:
             history (List[float]): Train and validation values.
             eval_type (str): Evaluation type [dice_coeff_loss, dice_coeff].
-            y : tuple(float, float): Coordinate values (y limiter).
             outputs_dir (str): Path to the outputs directory.
 
         Returns:
@@ -80,12 +80,11 @@ def plot_history(history, eval_type: str, y: Tuple[int, int], outputs_dir: str =
 
 
     plt.figure(figsize=(5, 4))
-    plt.plot(history.history[type], label=f"Training {type}")
-    plt.plot(history.history[f'val_{type}'], label=f"Validation {type}")
+    plt.plot(history.history[eval_type], label=f"Training {eval_type}")
+    plt.plot(history.history[f'val_{eval_type}'], label=f"Validation {eval_type}")
     plt.xlabel("Epoch")
-    plt.ylabel(type)
-    plt.ylim(y)
-    plt.title(f"Training vs. Validation {type.capitalize()}")
+    plt.ylabel(eval_type)
+    plt.title(f"Training vs. Validation {eval_type.capitalize()}")
     plt.grid(True)
     plt.legend(loc='upper left')
 
@@ -97,11 +96,11 @@ def plot_history(history, eval_type: str, y: Tuple[int, int], outputs_dir: str =
     return plot_filename
 
 
-def plot_learning_rate(history, outputs_dir = "/mnt/data/results"):
+def plot_learning_rate(history, outputs_dir = "./outputs/results"):
     """Plots the learning rate curve."""
 
     plt.figure(figsize=(10, 6))
-    plt.semelogx(history.history['lr'], history.history['loss'])
+    plt.semelogx(history.history['learning_rate'], history.history['loss'])
     plt.tick_params('both', length=10, width=1, which='both')
     plt.xlabel("Learning Rate")
     plt.ylabel("Loss")

@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: airbus-ship-detection-api-app
+  name: ship-detection-api
   namespace: default
 spec:
   type: LoadBalancer
   selector:
-    app: airbus-ship-detection-api-app
+    app: ship-detection-api
   ports: 
-    - port: 8080
-      targetPort: 8080
+    - port: 8585
+      targetPort: 8585

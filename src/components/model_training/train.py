@@ -1,35 +1,43 @@
 
 import os
-import sys
 import logging
 import argparse
 from typing import Tuple
 
 import mlflow 
-from mlflow.tensorflow import MlflowCallback
 
-import numpy as np
 import tensorflow as tf
 
-sys.path.append('./')
 from utils import *
 from unet_model import build_unet
 from read_tfrecord import ReadTFRecord
 
 
+
+
 EXPERIMENT_NAME = "Airbus-Ship-Detection"
-MLFLOW_TRACKING_URI="http://0.0.0.0:5000"
+MLFLOW_TRACKING_URI="http://mlflow:5000"
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("__MODEL_TRAINING__")
 
-mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+try:
+    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+    logger.info("Connected to MLflow tracking server")
+except Exception as e:
+    logger.error(f"Error connecting to MLflow: {e}")
+
+
 mlflow.set_experiment(EXPERIMENT_NAME)
-mlflow.tensowflow.autolog(
-    log_dataseUntitledts=False,
-    save_model_kwargs="h5",
-    checkpoint=True,
-)
+# mlflow.tensorflow.autolog(og_datasets=False)
+
+
+class MLflowMetricsLogger(tf.keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, logs=None):
+        if logs is not None:
+            for key, value in logs.items():
+                mlflow.log_metric(key, value, step=epoch)
 
 
 def load_dataset(train_dir: str, val_dir: str, batch: int):
@@ -49,7 +57,6 @@ def load_dataset(train_dir: str, val_dir: str, batch: int):
     # load training and validation dataset.
     train_dataset = ReadTFRecord.load_tfrecord(train_dir, batch)
     val_dataset = ReadTFRecord.load_tfrecord(val_dir, batch)
-    logger.info("Loading training and validation dataset successfully completed.")
 
     return train_dataset, val_dataset
   
@@ -78,7 +85,9 @@ def compile_model(model: tf.keras.models,
         optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate, epsilon=1e-06),
         loss = dice_coeff_loss,
         metrics=[dice_coeff])
-    
+    # mlflow.log_param("Epsilon", epsilon)
+    mlflow.log_param("Optimizer", "adam")
+
     # define early stopping to prevent overfitting
     early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_dice_loss',
                                                       patience=5,
@@ -87,25 +96,26 @@ def compile_model(model: tf.keras.models,
                                                       restore_best_weights=True)
 
     # save checkpoints
-    checkpoint_path = '/mnt/data/models/checkpoint'
-    if not os.path.exists(checkpoint_path):
-        os.makedirs(checkpoint_path, exist_ok=True)
+    checkpoint_dir = './outputs/results/models/checkpoint'
+    checkpoint_path = os.path.join(checkpoint_dir, 'checkpoint.keras')
+    if not os.path.exists(checkpoint_dir):
+        os.makedirs(checkpoint_dir, exist_ok=True)
+
+    logger.info(f"Checkpoint saved in the directory {checkpoint_path}")
 
     # define model checkpoint callback
     checkpoint = tf.keras.callbacks.ModelCheckpoint(checkpoint_path,
                                                     monitor='val_dice_loss',
                                                     save_best_only=True,
                                                     save_freq='epoch')
-    
-    # fit the model with callbacks and mlflow logging.
-    with mlflow.start_run() as run:
-        history = model.fit(train_data,
-                            validation_data=val_data,
-                            epochs=epochs,
-                            callbacks=[early_stopping, checkpoint, MlflowCallback(run)])
-    
-    logger.info("Training model successfully completed.")
 
+    # fit the model with callbacks and mlflow logging.
+    # with mlflow.start_run() as run: 
+    history = model.fit(train_data,
+                        validation_data=val_data,
+                        epochs=epochs,
+                        callbacks=[early_stopping, checkpoint, MLflowMetricsLogger()])
+            
     return history
 
 
@@ -127,32 +137,43 @@ def train(train_dir: str,
             epochs (int): Number of training epochs.
             learning_rate (float): Learning rate for the optimizer.
     """
-
     # load training and validation dataset
     train_dataset, val_dataset = load_dataset(train_dir, val_dir, batch)
+    logger.info("Loading training and validation dataset successfully completed.")
 
     # build the unet model
     model = build_unet(n_classes=num_classes, height=img_shape[0], width=img_shape[1], channel=img_shape[2])
+    logger.info("U-net model successfully built.")
 
     # compile and fit the model.
-    history = compile_model(model, train_dataset, val_dataset, epochs, learning_rate)
+    with mlflow.start_run():
 
-    # plot the dice_coeff and loss of the unet model
-    plot_filename = plot_history(history, eval_type="loss")
-    logger.info(f"Dice coefficient loss plot saved in {plot_filename}.")
-    plot_filename = plot_history(history, eval_type="dice_coeff")
-    logger.info(f"Dice coefficient accuracy plot saved in {plot_filename}.")
+        mlflow.log_param("Epochs", epochs)
+        mlflow.log_param("Batch Size", batch)
+        mlflow.log_param("Learning rate", learning_rate)
+
+        
+        _ = compile_model(model, train_dataset, val_dataset, epochs, learning_rate)
+        logger.info("Training model successfully completed.")
+
+        # Log the model
+        mlflow.keras.log_model(model, "model")
+
+        # save the model
+        saved_path = save_model(model)
+        mlflow.log_artifact(local_path=saved_path, artifact_path="models")
+        logger.info(f"The model is successfully saved in the {saved_path}")
 
 
 def opt_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("--train-dir", type=str, required=True, help="Path to the training dataset.")
     parser.add_argument("--val-dir", type=str, required=True, help="Path to validation directory.")
-    parser.add_argument("--num-classes", type=int, required=True, help="Number of classes.")
-    parser.add_argument("--img-shape", type=Tuple(int, int, int), default=(640, 640, 3), help="Image shape.")
+    parser.add_argument("--num-classes", type=int, default=1, help="Number of classes.")
+    parser.add_argument("--img-shape", type=Tuple[int, int, int], default=(512, 512, 3), help="Image shape.")
     parser.add_argument("--batch", type=int, default=8, help="Number of batch size.")
     parser.add_argument("--epochs", type=int, required=True, help="Number of training epochs")
-    parser.add_argument("--learning-rate", required=True, type=float, help="Learning rate for the optimizer.")
+    parser.add_argument("--learning-rate", type=float, required=True, help="Learning rate for the optimizer.")
 
     return parser.parse_args()
 

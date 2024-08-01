@@ -167,3 +167,9 @@ kaggle.json
 
 # dataset
 data/
+
+# outputs
+outputs/
+
+docker-compose.test.yaml
+
